@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { WebSocketServer } from "ws";
+import { PictioWs } from "./ws/index.js";
 
 // Express static content
 const port = 5200;
@@ -11,9 +12,5 @@ app.listen(port, () => console.log(`Server running on port ${port}`))
 // Websockets
 const wsPort = 5201;
 const ws = new WebSocketServer({ port: wsPort });
-ws.on("connection", ws => {
-  ws.on("message", message => {
-    const body = JSON.parse(message);
-    console.log(body)
-  })
-})
+const pictioWs = new PictioWs(ws);
+

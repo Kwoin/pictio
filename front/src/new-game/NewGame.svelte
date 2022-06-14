@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MSG_TYPE_TO_BACK } from "../../../server/ws/constants.js"
   import { websocket } from "../store/web-socket";
 
   export let username = "";
@@ -8,11 +9,12 @@
   function handleSubmit(event) {
     ws.send(JSON.stringify(
         {
-          type: "new-game",
-          username
+          type: MSG_TYPE_TO_BACK.GAME_CREATE,
+          payload: {
+            username
+          }
         }
     ));
-    console.log("kwoin")
   }
 </script>
 

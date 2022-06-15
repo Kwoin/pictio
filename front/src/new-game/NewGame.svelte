@@ -1,20 +1,13 @@
 <script lang="ts">
   import { MSG_TYPE_TO_BACK } from "../../../server/ws/constants.js"
   import { websocket } from "../store/web-socket";
+  import { createWsMsg } from "../utils";
 
   export let username = "";
 
-  const ws = $websocket;
-
   function handleSubmit(event) {
-    ws.send(JSON.stringify(
-        {
-          type: MSG_TYPE_TO_BACK.GAME_CREATE,
-          payload: {
-            username
-          }
-        }
-    ));
+    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_CREATE, { username });
+    $websocket.send(msg);
   }
 </script>
 
@@ -22,4 +15,3 @@
     <input type="text" bind:value={username}/>
     <button type="submit">Submit</button>
 </form>
-<span>{username}</span>

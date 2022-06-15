@@ -2,6 +2,7 @@
   import { Router, Link, Route } from "svelte-routing";
   import Home from "./home/Home.svelte";
   import NewGame from "./new-game/NewGame.svelte";
+  import Game from "./game/Game.svelte";
 
   export let url = "";
 
@@ -14,6 +15,7 @@
     </nav>
     <div>
         <Route path="new-game" component="{NewGame}" />
+        <Route path="game/:id" let:params><Game params="{params}"/></Route>
         <Route path="/"><Home /></Route>
     </div>
 </Router>

@@ -10,14 +10,11 @@ export const MSG_TYPE_TO_BACK = {
 
 export const MSG_TYPE_TO_FRONT = {
   GAME_CREATED: "game-created",
-  GAME_LOBBY_UPDATED: "game-lobby-updated",
+  GAME_JOINED: "game-joined",
+  GAME_DATA: "game-data",
   GAME_STARTED: "user-started",
-  GAME_PLAY_UPDATED: "game-updated",
-  GAME_END: "game-end"
-}
-
-export function wsMsg(type, payload) {
-  return { type, payload };
+  GAME_END: "game-end",
+  ERROR: "error"
 }
 
 export const GAME_STATE = {

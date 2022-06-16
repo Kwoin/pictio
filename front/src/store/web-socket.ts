@@ -10,8 +10,8 @@ function getWs(): WebSocket {
   ws.onopen = () => console.log("connexion ouverte");
   ws.onerror = error => console.error(error);
   ws.onmessage = messageEvent => {
-    console.log("WS message received", messageEvent);
     const { type, payload } = JSON.parse(messageEvent.data);
+    console.log(`WS message received (${type})`, payload);
     dispatch(type)(payload)
   }
   return ws;

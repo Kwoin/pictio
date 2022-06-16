@@ -1,5 +1,6 @@
 import pg from "pg";
-const { Pool } = pg;
+
+const {Pool} = pg;
 
 const pool = new Pool();
 
@@ -38,10 +39,11 @@ export async function transaction(...queries) {
 
     for (let i = 0; i < queries.length; i++) {
       res = await queries[i](client, res);
+      console.log("resultat intermédiaire", res);
     }
 
     await client.query("COMMIT;");
-  } catch(e) {
+  } catch (e) {
     await client.query("ROLLBACK;");
     throw e;
   } finally {
@@ -51,16 +53,14 @@ export async function transaction(...queries) {
 
 }
 
-export function insert(table, entries) {
+export async function insert(table, entries, client) {
   const columns = Object.keys(entries).map(column => `"${column}"`).join();
   const params = Object.entries(entries)
       .map((_, i) => `$${i + 1}`)
       .join();
-  return (client) => {
-    return client.query(
-        `INSERT INTO ${table}(${columns}) VALUES (${params}) RETURNING *;`,
-        Object.values(entries)
-    )
-  }
-
+  return client.query(
+      `INSERT INTO ${table}(${columns})
+       VALUES (${params}) RETURNING *;`,
+      Object.values(entries)
+  )
 }

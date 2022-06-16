@@ -3,7 +3,7 @@ export const MSG_TYPE_TO_BACK = {
   USER_JOIN: "user-join",
   USER_READY: "user-ready",
   USER_NOT_READY: "user-not-ready",
-  USER_START: "user-start",
+  GAME_START: "user-start",
   PLAY_SEND_CARD: "play-send-card",
   PLAY_SEND_WORD: "play-send-word",
 }
@@ -22,4 +22,11 @@ export const GAME_STATE = {
   PROGRESS: "PROGRESS",
   ABORTED: "ABORTED",
   DONE: "DONE"
+}
+
+export const MESSAGE_TYPE = {
+  USER: "USER",
+  ERROR: "ERROR",
+  SUCCESS: "SUCCESS",
+  INFO: "INFO",
 }

@@ -3,7 +3,7 @@ export interface WsMessage {
   payload: any;
 }
 
-export function createWsMsg(type: string, payload: any): string {
+export function createWsMsg(type: string, payload: any = {}): string {
   const wsMessage: WsMessage = { type, payload };
   return JSON.stringify(wsMessage);
 }

@@ -20,14 +20,14 @@
   }
 
   function handleToggleReady(event) {
-    const type = $me.lobby_ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY;
+    const type = $me.ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY;
     const msg = createWsMsg(type, {user_id: $me.id})
     $websocket.send(msg);
   }
 
   function handleStart(event) {
-    // todo
-    console.log("start");
+    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_START, { game_id: $game.id })
+    $websocket.send(msg);
   }
 
 </script>
@@ -36,13 +36,13 @@
     <ul>
         {#each $users as user}
             <li>
-                <span>{user.username}</span> - <span>{user.lobby_ready ? 'READY' : 'WAIT'}</span>
+                <span>{user.username}</span> - <span>{user.ready ? 'READY' : 'WAIT'}</span>
             </li>
         {/each}
     </ul>
-    <button on:click={handleToggleReady}>{$me.lobby_ready ? 'CANCEL READY' : 'READY'}</button>
+    <button on:click={handleToggleReady}>{$me.ready ? 'CANCEL READY' : 'READY'}</button>
     {#if $me.game_owner}
-        <button on:click={handleStart} disabled="{$users.length >= 2}">START</button>
+        <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">START</button>
     {/if}
 {:else}
     <form on:submit|preventDefault={handleSubmit}>

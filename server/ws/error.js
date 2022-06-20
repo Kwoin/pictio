@@ -21,6 +21,10 @@ export const ERROR = {
   },
   UNAUTHORIZED: {
     code: "403",
-    message: "Not allowed",
-  }
+    message: "Not allowed"
+  },
+  ILLEGAL_STATE: {
+    code: "400",
+    message: "Illegal state"
+  },
 }

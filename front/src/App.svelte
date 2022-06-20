@@ -1,25 +1,42 @@
 <script lang="ts">
   import { Router, Link, Route } from "svelte-routing";
   import Home from "./home/Home.svelte";
-  import NewGame from "./new-game/NewGame.svelte";
+  import NewGame from "./game/NewGame.svelte";
   import Game from "./game/Game.svelte";
+  import Header from "./layout/Header.svelte";
+  import Footer from "./layout/Footer.svelte";
+  import Main from "./main";
 
   export let url = "";
 
 </script>
 
-<Router url="{url}">
-    <nav>
-        <Link to="/">Home</Link>
-        <Link to="new-game">New Game</Link>
-    </nav>
-    <div>
-        <Route path="new-game" component="{NewGame}" />
-        <Route path="game/:id" let:params><Game params="{params}"/></Route>
-        <Route path="/"><Home /></Route>
-    </div>
-</Router>
+<div class="grid">
+    <Router url="{url}">
+        <Header/>
 
+            <Route path="new-game">
+                <NewGame/>
+            </Route>
+            <Route path="game/:id" let:params>
+                <Game params="{params}"/>
+            </Route>
+            <Route path="/">
+                <Home/>
+            </Route>
+
+
+        <Footer/>
+    </Router>
+</div>
 <style>
-
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: 10vh 85vh 5vh;
+        grid-template-areas:
+          "hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr"
+          "lft lft ctn ctn ctn ctn ctn ctn ctn ctn rgt rgt"
+          "lft lft ftr ftr ftr ftr ftr ftr ftr ftr rgt rgt"
+    }
 </style>

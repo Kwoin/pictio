@@ -1,9 +1,13 @@
-import { LABELS as FR_LABELS } from "./fr.js";
+import { FR } from "./fr.js";
 
 export function label(key) {
-  return getLanguage()[key];
+  return getLanguage().LABEL[key];
+}
+
+export function getWords() {
+  return getLanguage().WORDS;
 }
 
 function getLanguage() {
-  return FR_LABELS;
+  return FR;
 }

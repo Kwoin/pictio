@@ -20,6 +20,7 @@ export async function getClient() {
         })
         .catch(e => {
           console.log(`query: ${args[0]}`);
+          throw e;
         })
   };
   client.release = (...args) => {
@@ -39,7 +40,7 @@ export async function transaction(...queries) {
 
     for (let i = 0; i < queries.length; i++) {
       res = await queries[i](client, res);
-      console.log("resultat intermédiaire", res);
+      // console.log("resultat intermédiaire", res);
     }
 
     await client.query("COMMIT;");

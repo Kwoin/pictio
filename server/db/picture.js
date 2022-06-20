@@ -8,7 +8,7 @@ export async function getPicturesOfLastRoundByGameId(game_id) {
       where round_id = (select id
                         from pictio.round
                         where game_id = $1
-                        order by creation desc limit 1)
+                        order by creation desc limit 1);
   `
   const result = await client.query(text, [game_id]);
   client.release();

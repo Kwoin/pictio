@@ -1,5 +1,13 @@
 <script lang="ts">
 
+import { Link } from "svelte-routing";
+import Main from "../layout/Main.svelte";
+
 </script>
 
-<h1>PICT.IO</h1>
+<Main>
+    <div slot="main">
+        <Link to="/new-game">Nouvelle partie</Link>
+    </div>
+</Main>
+

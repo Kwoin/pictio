@@ -1,16 +1,14 @@
 import { GAME_STATE, MESSAGE_TYPE, MSG_TYPE_TO_BACK, MSG_TYPE_TO_FRONT } from "./constants.js";
-import * as db from "../db/index.js"
-import { sendError, sendMsg } from "./util.js";
 import { getClient, insert, transaction } from "../db/index.js";
-import { getGameById } from "../db/game.js";
+import { getGameById, updateGameState } from "../db/game.js";
 import { ERROR, PictioError } from "./error.js";
-import { getUserById } from "../db/user.js";
-import { buildGame, startRound, updateGameState } from "../services/game.service.js";
+import { getActiveUsersByGameId, setUserReady, setUserSuccess } from "../db/user.js";
+import { getCurrentRound, isGameEnd, startRound, endRound } from "../services/game.service.js";
 import { insertMessage } from "../db/message.js";
 import { label } from "../i18n/index.js";
-
-const gameRegistry = new Map();
-const userRegistry = new Map();
+import { checkWord, isRoundEnd } from "../services/round.service.js";
+import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages } from "./send.js";
+import { gameRegistry, userRegistry } from "../services/registry.service.js";
 
 export class PictioWs {
 
@@ -39,6 +37,10 @@ function dispatch(type) {
   if (type === MSG_TYPE_TO_BACK.USER_READY) return userReady;
   if (type === MSG_TYPE_TO_BACK.USER_NOT_READY) return userNotReady;
   if (type === MSG_TYPE_TO_BACK.GAME_START) return gameStart;
+  if (type === MSG_TYPE_TO_BACK.PLAY_SEND_CARD) return playSendCard;
+  if (type === MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE) return playSendMessage;
+  if (type === MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND) return userReadyNextRound;
+  if (type === MSG_TYPE_TO_BACK.PLAY_FETCH_PICTURES) return playFetchPictures;
 }
 
 /**
@@ -49,11 +51,11 @@ function dispatch(type) {
  */
 async function gameCreate({username}, ws) {
 
-  const result = await db.transaction(
+  const result = await transaction(
       // Insérer une nouvelle entrée en base pour la partie
-      (client) => db.insert('pictio.game', {state: GAME_STATE.LOBBY}, client),
+      (client) => insert('pictio.game', {state: GAME_STATE.LOBBY}, client),
       // Insérer une nouvelle entrée en base pour le propriétaire de la partie
-      (client, res) => db.insert("pictio.user", {
+      (client, res) => insert("pictio.user", {
         game_id: res.rows[0].id,
         game_owner: true,
         ready: false,
@@ -112,15 +114,18 @@ async function userJoin({game_id, username}, ws) {
 
 }
 
-async function userReady({user_id}, ws) {
-  // Vérifier que l'utilisateur demandé existe bien
-  const user = await getUserById(user_id);
-  if (user == null) throw new PictioError(ERROR.NOT_FOUND);
+async function userReady(_, ws) {
+  // On récupère les informations de l'utilisateur
+  const user = userRegistry.get(ws);
+
+  // On vérifie que la game de l'utilisateur est bien en lobby
+  const game = await getGameById(user.game_id);
+  if (game.state !== GAME_STATE.LOBBY) throw new PictioError(ERROR.ILLEGAL_STATE);
 
   if (!user.ready) {
     // Mettre à jour l'utilisateur en base
     const client = await getClient();
-    client.query('update pictio.user set "ready" = true where id = $1', [user_id]);
+    setUserReady(client, user.id)
     client.release();
 
     // Envoyer les informations de la partie à tous les participants
@@ -128,15 +133,18 @@ async function userReady({user_id}, ws) {
   }
 }
 
-async function userNotReady({user_id}, ws) {
-  // Vérifier que l'utilisateur demandé existe bien
-  const user = await getUserById(user_id);
-  if (user == null) throw new PictioError(ERROR.NOT_FOUND);
+async function userNotReady(_, ws) {
+  // On récupère les informations de l'utilisateur
+  const user = userRegistry.get(ws);
+
+  // On vérifie que la game de l'utilisateur est bien en lobby
+  const game = await getGameById(user.game_id);
+  if (game.state !== GAME_STATE.LOBBY) throw new PictioError(ERROR.ILLEGAL_STATE);
 
   if (user.ready) {
     // Mettre à jour l'utilisateur en base
     const client = await getClient();
-    client.query('update pictio.user set "ready" = false where id = $1', [user_id]);
+    setUserReady(client, user.id, false)
     client.release();
 
     // Envoyer les informations de la partie à tous les participants
@@ -145,7 +153,6 @@ async function userNotReady({user_id}, ws) {
 }
 
 async function gameStart({game_id}, ws) {
-  console.log(game_id);
   // Vérifier que la partie demandée existe bien
   const game = await getGameById(game_id);
   if (game == null) throw new PictioError(ERROR.NOT_FOUND);
@@ -161,25 +168,123 @@ async function gameStart({game_id}, ws) {
       // 3. Ajouter un message de bienvenue
       (client, res) => insertMessage(
           client,
-          res.rows[0].round_id,
+          res.rows[0].id,
           MESSAGE_TYPE.INFO,
           label("message_new_game")
       )
   )
 
   // Envoyer les informations de la partie à tous les participants
+  await sendGameData(user.game_id, MSG_TYPE_TO_FRONT.ROUND_START);
+
+  // Envoyer des nouvelles images et le mot
+  await sendRandomImages(user.game_id);
+  await sendWord(user.game_id);
+
+}
+
+export async function playSendCard(picture, ws) {
+  // Une carte a été selectionnée
+  // On récupère les informations de l'émetteur
+  const user = userRegistry.get(ws);
+
+  // On récupère le round en cours de la game
+  const currentRound = await getCurrentRound(user.game_id);
+  if (currentRound == null) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // On vérifie que le joueur est bien le joueur solo
+  if (currentRound.solo_user_id !== user.id) throw new PictioError(ERROR.UNAUTHORIZED)
+
+  // On enregistre l'image sélectionnée en base
+  const client = await getClient();
+  await insert("pictio.picture", {...picture, round_id: currentRound.id}, client);
+  client.release();
+
+  // Envoyer les informations de la partie à tous les participants
+  await sendGameData(user.game_id);
+
+  // Envoyer des nouvelles images
+  await sendRandomImages(user.game_id);
+}
+
+export async function playSendMessage({text}, ws) {
+  // Un message a été envoyé
+  // On récupère les informations de l'émetteur
+  const user = userRegistry.get(ws);
+  const game_id = user.game_id;
+
+  // On récupère le round en cours de la game
+  const currentRound = await getCurrentRound(game_id);
+  if (currentRound == null) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // On vérifie que le joueur n'est pas le joueur solo
+  if (currentRound.solo_user_id === user.id) throw new PictioError(ERROR.UNAUTHORIZED)
+
+  // On vérifie si le message correspond au mot à trouver
+  if (await checkWord(text, currentRound.id)) {
+    // Si l'utilisateur a trouvé le mot
+    const result = await transaction(
+        // 1. On assigne success à l'utilisateur en base
+        (client) => setUserSuccess(user.id, client),
+        // 2. On en registre un message de succès en base
+        (client) => insertMessage(client, currentRound.id, MESSAGE_TYPE.SUCCESS, label("message_success")(user.username))
+    )
+    // On vérifie si le round est terminé
+    if (await isRoundEnd(currentRound.id)) endRound(game_id);
+  } else {
+    // Si l'utilisateur a envoyé un message qui n'est pas le mot à trouver,
+    // on l'ajoute en tant que message de l'utilisateur en base
+    const client = await getClient();
+    await insertMessage(client, currentRound.id, MESSAGE_TYPE.USER, text, user.id)
+    client.release();
+  }
+
+  // Envoyer les informations de la partie à tous les participants
   await sendGameData(user.game_id);
 
 }
 
-/**
- * Envoyer les informations d'une partie à tous ses participants
- * @param gameId
- */
-async function sendGameData(gameId) {
-  const dest = gameRegistry.get(gameId).users;
-  const gameData = await buildGame(gameId);
-  return sendMsg(dest, MSG_TYPE_TO_FRONT.GAME_DATA, gameData);
+export async function userReadyNextRound(_, ws) {
+  // On récupère les informations de l'utilisateur
+  const user = userRegistry.get(ws);
+  const game_id = user.game_id;
+
+  // On vérifie que la game de l'utilisateur est bien en cours
+  const game = await getGameById(game_id);
+  if (game.state !== GAME_STATE.PROGRESS) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // On passe l'utilisateur à l'état Ready
+  const client = await getClient();
+  setUserReady(client, user.id);
+  client.release();
+
+  // Si tous les participants sont prêts, on lance un nouveau round ou on termine la game
+  const users = await getActiveUsersByGameId(game_id);
+  if (users.every(user => user.ready)) {
+    const client = await getClient();
+    if (await isGameEnd(game_id)) {
+      // Si la game est terminée, on met à jour son statut en base
+      await updateGameState(game_id, GAME_STATE.DONE, client)
+      await sendGameData(game_id);
+    } else {
+      // Sinon on démarre un nouveau round
+      await startRound(game_id, client);
+      await sendGameData(game_id, MSG_TYPE_TO_FRONT.ROUND_START);
+      await sendRandomImages(game_id);
+      await sendWord(game_id);
+    }
+    client.release();
+  }
 }
 
+export async function playFetchPictures(_, ws) {
+  // On récupère les informations de l'utilisateur
+  const user = userRegistry.get(ws);
+  const game_id = user.game_id;
 
+  // On récupère les informations de la partie
+  const game = await getGameById(game_id);
+  if (game.state !== GAME_STATE.PROGRESS) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // todo
+}

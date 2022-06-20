@@ -15,6 +15,7 @@ export interface Game {
   users: User[]
   messages: Message[];
   pictures: Picture[];
+  round: Round;
 }
 
 export interface User {
@@ -25,6 +26,7 @@ export interface User {
   game_score: number;
   username: string;
   game_owner: boolean;
+  success: boolean;
 }
 
 export interface Message {
@@ -37,6 +39,18 @@ export interface Message {
 }
 
 export interface Picture {
-  id: number;
+  id?: number;
+  index?: number;
   url: string;
+  author: string;
+  description: string;
+}
+
+export interface Round {
+  id: number;
+  game_id: number;
+  solo_user_id: number;
+  creation: string;
+  end: string;
+  word?: string;
 }

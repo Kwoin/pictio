@@ -15,13 +15,16 @@
 <style>
     .left {
         grid-area: lft;
+        display: flex;
     }
 
     .right {
         grid-area: rgt;
+        display: flex;
     }
 
     main {
         grid-area: ctn;
+        display: flex;
     }
 </style>

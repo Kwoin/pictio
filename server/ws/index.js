@@ -2,12 +2,12 @@ import { GAME_STATE, MESSAGE_TYPE, MSG_TYPE_TO_BACK, MSG_TYPE_TO_FRONT } from ".
 import { getClient, insert, transaction } from "../db/index.js";
 import { getGameById, updateGameState } from "../db/game.js";
 import { ERROR, PictioError } from "./error.js";
-import { getActiveUsersByGameId, setUserReady, setUserSuccess } from "../db/user.js";
+import { getActiveUsersByGameId, getUserById, setUserInactive, setUserReady, setUserSuccess } from "../db/user.js";
 import { getCurrentRound, isGameEnd, startRound, endRound } from "../services/game.service.js";
 import { insertMessage } from "../db/message.js";
 import { label } from "../i18n/index.js";
 import { checkWord, isRoundEnd } from "../services/round.service.js";
-import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages } from "./send.js";
+import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores } from "./send.js";
 import { gameRegistry, userRegistry } from "../services/registry.service.js";
 
 export class PictioWs {
@@ -25,6 +25,9 @@ export class PictioWs {
           }
         }
       });
+      ws.on("close", async message => {
+
+      })
     });
   }
 
@@ -135,7 +138,8 @@ async function userReady(_, ws) {
 
 async function userNotReady(_, ws) {
   // On récupère les informations de l'utilisateur
-  const user = userRegistry.get(ws);
+  const user_id = userRegistry.get(ws).id;
+  const user = await getUserById(user_id);
 
   // On vérifie que la game de l'utilisateur est bien en lobby
   const game = await getGameById(user.game_id);
@@ -156,6 +160,7 @@ async function gameStart({game_id}, ws) {
   // Vérifier que la partie demandée existe bien
   const game = await getGameById(game_id);
   if (game == null) throw new PictioError(ERROR.NOT_FOUND);
+
   // Vérifier que c'est le propriétaire de la partie qui demande le lancement
   const user = userRegistry.get(ws);
   if (!(game.id === user.game_id && user.game_owner)) throw new PictioError(ERROR.UNAUTHORIZED);
@@ -164,22 +169,27 @@ async function gameStart({game_id}, ws) {
       // 1. Mettre à jour le statut de la game
       (client) => updateGameState(game_id, GAME_STATE.PROGRESS, client),
       // 2. Créer le round
-      (client) => startRound(game_id, client),
+      (client) => startRound(game_id, client, (scores) => {
+        return Promise.all([
+            sendScores(game_id, scores),
+            sendGameData(game_id)
+        ])
+      }),
       // 3. Ajouter un message de bienvenue
       (client, res) => insertMessage(
           client,
-          res.rows[0].id,
+          res.id,
           MESSAGE_TYPE.INFO,
           label("message_new_game")
       )
   )
 
   // Envoyer les informations de la partie à tous les participants
-  await sendGameData(user.game_id, MSG_TYPE_TO_FRONT.ROUND_START);
+  await sendGameData(game_id, MSG_TYPE_TO_FRONT.ROUND_START);
 
   // Envoyer des nouvelles images et le mot
-  await sendRandomImages(user.game_id);
-  await sendWord(user.game_id);
+  await sendRandomImages(game_id);
+  await sendWord(game_id);
 
 }
 
@@ -190,7 +200,7 @@ export async function playSendCard(picture, ws) {
 
   // On récupère le round en cours de la game
   const currentRound = await getCurrentRound(user.game_id);
-  if (currentRound == null) throw new PictioError(ERROR.ILLEGAL_STATE);
+  if (currentRound == null || currentRound.end != null) throw new PictioError(ERROR.ILLEGAL_STATE);
 
   // On vérifie que le joueur est bien le joueur solo
   if (currentRound.solo_user_id !== user.id) throw new PictioError(ERROR.UNAUTHORIZED)
@@ -220,23 +230,28 @@ export async function playSendMessage({text}, ws) {
   // On vérifie que le joueur n'est pas le joueur solo
   if (currentRound.solo_user_id === user.id) throw new PictioError(ERROR.UNAUTHORIZED)
 
-  // On vérifie si le message correspond au mot à trouver
-  if (await checkWord(text, currentRound.id)) {
-    // Si l'utilisateur a trouvé le mot
-    const result = await transaction(
-        // 1. On assigne success à l'utilisateur en base
-        (client) => setUserSuccess(user.id, client),
-        // 2. On en registre un message de succès en base
-        (client) => insertMessage(client, currentRound.id, MESSAGE_TYPE.SUCCESS, label("message_success")(user.username))
-    )
-    // On vérifie si le round est terminé
-    if (await isRoundEnd(currentRound.id)) endRound(game_id);
-  } else {
-    // Si l'utilisateur a envoyé un message qui n'est pas le mot à trouver,
-    // on l'ajoute en tant que message de l'utilisateur en base
-    const client = await getClient();
-    await insertMessage(client, currentRound.id, MESSAGE_TYPE.USER, text, user.id)
-    client.release();
+  if (currentRound.end == null) {
+    // Si le round n'est pas terminé, on vérifie si le message correspond au mot à trouver
+    if (await checkWord(text, currentRound.id)) {
+      // Si l'utilisateur a trouvé le mot
+      const result = await transaction(
+          // 1. On assigne success à l'utilisateur en base
+          (client) => setUserSuccess(user.id, client),
+          // 2. On en registre un message de succès en base
+          (client) => insertMessage(client, currentRound.id, MESSAGE_TYPE.SUCCESS, label("message_success")(user.username))
+      )
+      if (await isRoundEnd(currentRound.id)) {
+        // Si les conditions sont réunies, on termine le round en cours et on envoie les scores
+        const scores = await endRound(game_id, currentRound.id);
+        await sendScores(game_id, scores);
+      }
+    } else {
+      // Si l'utilisateur a envoyé un message qui n'est pas le mot à trouver,
+      // on l'ajoute en tant que message de l'utilisateur en base
+      const client = await getClient();
+      await insertMessage(client, currentRound.id, MESSAGE_TYPE.USER, text, user.id)
+      client.release();
+    }
   }
 
   // Envoyer les informations de la partie à tous les participants
@@ -268,7 +283,12 @@ export async function userReadyNextRound(_, ws) {
       await sendGameData(game_id);
     } else {
       // Sinon on démarre un nouveau round
-      await startRound(game_id, client);
+      await startRound(game_id, client, (scores) => {
+        return Promise.all([
+            sendScores(game_id, scores),
+            sendGameData(game_id)
+        ])
+      });
       await sendGameData(game_id, MSG_TYPE_TO_FRONT.ROUND_START);
       await sendRandomImages(game_id);
       await sendWord(game_id);
@@ -277,14 +297,46 @@ export async function userReadyNextRound(_, ws) {
   }
 }
 
-export async function playFetchPictures(_, ws) {
-  // On récupère les informations de l'utilisateur
+export async function handleWsClose(ws) {
+
+  // On récupère l'utilisateur concerné
   const user = userRegistry.get(ws);
-  const game_id = user.game_id;
+  if (user == null) return;
 
-  // On récupère les informations de la partie
-  const game = await getGameById(game_id);
-  if (game.state !== GAME_STATE.PROGRESS) throw new PictioError(ERROR.ILLEGAL_STATE);
+  // On supprime la socket du registry des utilisateurs et on le rend inactif en base
+  userRegistry.delete(ws);
+  const client = await getClient();
+  await setUserInactive(client, user.id);
+  client.release();
 
-  // todo
+  // On récupère la game concernée
+  const game = await getGameById(user.game_id);
+  const game_id = game.id;
+
+  // On supprime la websocket du registry de la game
+  const gameRegistryData = gameRegistry.get(game_id);
+  if (gameRegistryData == null) return;
+  gameRegistryData.users = gameRegistryData.users.filter(wsInRegistry => wsInRegistry !== ws);
+  if (gameRegistryData.owner === ws) gameRegistryData.owner = null;
+  const usersLeft = gameRegistryData.users.length;
+
+  if (game.state === GAME_STATE.PROGRESS) {
+    // Si la game est en cours
+    if (usersLeft < 2) {
+      // S'il reste moins de deux participants
+      // On avorte la game
+      const client = await getClient();
+      await updateGameState(game_id, GAME_STATE.ABORTED, client);
+      client.release();
+    }
+  }
+
+  if (usersLeft === 0) {
+    // S'il n'y a plus d'utilisateur dans la game
+    // On la supprime du registry
+    gameRegistry.delete(game_id);
+  }
+
+  await sendGameData(game_id, MSG_TYPE_TO_FRONT);
+
 }

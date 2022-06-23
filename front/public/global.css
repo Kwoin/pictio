@@ -29,7 +29,7 @@ a:hover {
 }
 
 a:visited {
-	color: color-mix(var(--color3) 20%, white)
+	color: #FF7626;
 }
 
 label {
@@ -53,6 +53,7 @@ button {
 	color: #333;
 	background-color: #f4f4f4;
 	outline: none;
+	cursor: pointer;
 }
 
 button:disabled {
@@ -69,4 +70,24 @@ button:focus {
 
 ul {
 	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+li {
+	padding: 0;
+}
+
+figure {
+	margin: 0;
+	display: inline-block;
+	text-align: center;
+}
+
+h1, h2, h3 {
+	margin: 0;
+}
+
+.icon {
+	cursor: pointer;
 }

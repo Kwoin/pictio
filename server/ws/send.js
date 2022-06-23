@@ -86,3 +86,14 @@ export async function sendWord(game_id) {
   // On lui envoie le mot
   await sendMsg(dest, MSG_TYPE_TO_FRONT.PLAY_WORD, round.word);
 }
+
+/**
+ * Envoyer les scores aux participants d'une partie
+ * @param game_id
+ * @param scores
+ * @returns {Promise<void>}
+ */
+export async function sendScores(game_id, scores) {
+  const dest = gameRegistry.get(game_id).users;
+  await sendMsg(dest, MSG_TYPE_TO_FRONT.ROUND_END, scores);
+}

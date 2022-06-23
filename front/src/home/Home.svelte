@@ -11,3 +11,7 @@ import Main from "../layout/Main.svelte";
     </div>
 </Main>
 
+<style>
+
+</style>
+

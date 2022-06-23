@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Router, Link, Route } from "svelte-routing";
+  import { Router, Route } from "svelte-routing";
   import Home from "./home/Home.svelte";
   import NewGame from "./game/NewGame.svelte";
   import Game from "./game/Game.svelte";
   import Header from "./layout/Header.svelte";
   import Footer from "./layout/Footer.svelte";
-  import Main from "./main";
+  import "toastify-js/src/toastify.css"
 
   export let url = "";
 

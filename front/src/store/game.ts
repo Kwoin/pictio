@@ -1,6 +1,6 @@
 import { derived, writable } from "svelte/store";
-import type { Game, Picture, RandomPicture } from "../model/game";
-import { MSG_TYPE_TO_FRONT, ROUND_DURATION } from "../../../server/ws/constants.js";
+import type { Game, Picture, Score } from "../model/game";
+import { MSG_TYPE_TO_FRONT } from "../../../server/ws/constants.js";
 import type { WsMessage } from "../model/ws";
 
 export const wsMessages = writable<WsMessage>(null);
@@ -13,19 +13,23 @@ export const pictures = derived(game, $game => $game?.pictures ?? []);
 export const round = derived(game, $game => $game?.round);
 export const randomPictures = writable<Picture[]>([]);
 export const word = writable<string>(null);
-
-const timer = (messageType: string, duration: number) => derived(wsMessages, ($wsMessages, set) => {
-  if ($wsMessages?.type === messageType) {
-    set(new Date(duration));
-    const start = new Date();
-    const interval = setInterval(() => {
-      const now = new Date();
-      const timeLeft = duration - (now.getTime() - start.getTime());
-      set(new Date(timeLeft));
-      if (timeLeft < 1000) {
-        clearInterval(interval);
-      }
-    }, 500);
+export const scores = writable<Score[]>([]);
+export const startRound = derived(wsMessages, ($wsMessages, set) => {
+  if ($wsMessages?.type === MSG_TYPE_TO_FRONT.ROUND_START) {
+    set(new Date());
+    set(null)
   }
-})
-export const roundTimer = timer(MSG_TYPE_TO_FRONT.ROUND_START, ROUND_DURATION);
+});
+export const endRound = derived(wsMessages, ($wsMessages, set) => {
+  if ($wsMessages?.type === MSG_TYPE_TO_FRONT.ROUND_END) {
+    set(new Date());
+    set(null);
+  }
+});
+
+export function resetStores() {
+  myUserId.set(null);
+  game.set(null);
+  randomPictures.set([]);
+  scores.set([]);
+}

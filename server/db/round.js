@@ -23,3 +23,7 @@ export async function getRoundsCountGroupedBySoloUserId(solo_user_ids) {
   client.release();
   return result.rows;
 }
+
+export async function setRoundEnd(client, round_id, end = new Date()) {
+  await client.query(`update pictio.round set "end" = $1 where id = $2;`, [end, round_id])
+}

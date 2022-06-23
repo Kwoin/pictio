@@ -3,6 +3,8 @@
     import { createEventDispatcher } from "svelte";
 
     export let picture: ModelPicture;
+    export let height: string;
+    export let width: string;
 
     const dispatch = createEventDispatcher();
 
@@ -12,14 +14,16 @@
 
 </script>
 
-<figure>
-    <img on:click={handleClick} src="{picture.url}" alt="{picture.description}"/>
+<figure on:click={handleClick}>
+    <img src="{picture.url}" alt="{picture.description}" style="width: {width}; height: {height}"/>
     <figcaption>{picture.author}</figcaption>
 </figure>
 
 <style>
-    img {
+    figure {
         cursor: pointer;
-        width: 10vw;
+    }
+    figcaption {
+        font-size: .8em;
     }
 </style>

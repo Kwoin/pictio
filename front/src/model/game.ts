@@ -54,3 +54,8 @@ export interface Round {
   end: string;
   word?: string;
 }
+
+export interface Score {
+  user: User;
+  score: number;
+}

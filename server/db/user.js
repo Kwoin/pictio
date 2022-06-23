@@ -39,3 +39,7 @@ export async function setUserReady(client, user_id, ready = true) {
 export async function setUserScore(client, user_id, score) {
   return client.query("update pictio.user set game_score = $1 where id = $2;", [score, user_id]);
 }
+
+export async function setUserInactive(client, user_id) {
+  return client.query("update pictio.user set connected = false where id = $1;", [user_id]);
+}

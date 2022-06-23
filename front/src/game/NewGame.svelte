@@ -3,8 +3,11 @@
   import { websocket } from "../store/web-socket";
   import { createWsMsg } from "../utils";
   import Main from "../layout/Main.svelte";
+  import { resetStores } from "../store/game";
 
   export let username = "";
+
+  resetStores();
 
   function handleSubmit(event) {
     const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_CREATE, {username});
@@ -13,10 +16,15 @@
 </script>
 
 <Main>
-    <div slot="main">
-        <form on:submit|preventDefault={handleSubmit}>
-            <input type="text" bind:value={username}/>
-            <button type="submit">Submit</button>
+        <form slot="main" on:submit|preventDefault={handleSubmit}>
+            <label for="username">Nom d'utilisateur</label>
+            <input id="username" type="text" bind:value={username}/>
+            <button type="submit">Créer une partie</button>
         </form>
-    </div>
 </Main>
+
+<style>
+    form {
+        padding: 4px;
+    }
+</style>

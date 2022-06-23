@@ -8,7 +8,7 @@
 <ul>
     {#each pictures as picture}
         <li>
-            <Picture picture="{picture}"/>
+            <Picture picture="{picture}" width="12vw"/>
         </li>
     {/each}
 </ul>
@@ -18,7 +18,11 @@
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
-        gap: 2px;
-        height: 50vh;
+        gap: 4px;
+        min-height: 100%;
+        align-content: baseline;
+        flex: 100%;
+        overflow-x: auto;
+        padding: 0 4px;
     }
 </style>

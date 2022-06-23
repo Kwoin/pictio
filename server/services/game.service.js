@@ -1,6 +1,6 @@
 import { getGameById, resetGameUsers } from "../db/game.js";
 import { getActiveUsersByGameId, getUserById, getUsersByGameId, setUserScore } from "../db/user.js";
-import { getRoundsByGameId, getRoundsCountGroupedBySoloUserId } from "../db/round.js";
+import { getRoundById, getRoundsByGameId, getRoundsCountGroupedBySoloUserId, setRoundEnd } from "../db/round.js";
 import { insert, transaction } from "../db/index.js";
 import { getMessagesByGameId } from "../db/message.js";
 import { getPicturesOfLastRoundByGameId } from "../db/picture.js";
@@ -15,12 +15,12 @@ import { MAX_SOLO_USER_COUNT, ROUND_DURATION, SOLO_SCORE } from "../ws/constants
  */
 export async function buildGame(id) {
   const game = await getGameById(id);
-  const users = await getUsersByGameId(id);
+  const users = await getActiveUsersByGameId(id);
   const messages = await getMessagesByGameId(id);
   const pictures = await getPicturesOfLastRoundByGameId(id);
   const round = await getCurrentRound(id);
   if (round != null && round.end == null) delete round.word;
-  return { ...game, round, users, messages, pictures };
+  return {...game, round, users, messages, pictures};
 }
 
 /**
@@ -29,7 +29,7 @@ export async function buildGame(id) {
  * @param client
  * @returns {Promise<*>}
  */
-export async function startRound(game_id, client) {
+export async function startRound(game_id, client, onRoundEnd) {
   // On s'assure que les données des participants sont bien remises à zéro
   await resetGameUsers(game_id, client);
 
@@ -38,11 +38,11 @@ export async function startRound(game_id, client) {
   const rounds = await getRoundsByGameId(game_id);
   const users = await getActiveUsersByGameId(game_id);
   const usersWithSoloCount = users.map(user => (
-      {
-        user,
-        count: rounds.filter(round => round.solo_user_id === user.id).length,
-      }
-    )
+          {
+            user,
+            count: rounds.filter(round => round.solo_user_id === user.id).length,
+          }
+      )
   )
   const soloCounts = usersWithSoloCount.map(userWithSoloCount => userWithSoloCount.count);
   const minSolo = Math.min(...soloCounts);
@@ -57,20 +57,32 @@ export async function startRound(game_id, client) {
   const word = await getRandomWord();
   console.log("Mot à trouver", word);
 
-  // On créé un timer
-  setTimeout(() => endRound(game_id), ROUND_DURATION);
-
   // On crée un nouveau round
-  return insert("pictio.round", { game_id, solo_user_id, word }, client)
+  const result = await insert("pictio.round", {game_id, solo_user_id, word}, client);
+  const newRound = result.rows[0];
+
+  // On créé un timer pour achever le round au bout d'un temps donné
+  new Promise(resolve => setTimeout(() => resolve(), ROUND_DURATION))
+      .then(_ => endRound(game_id, newRound.id))
+      .then(scores => {
+        if (scores != null) onRoundEnd?.(scores)
+      });
+
+  return newRound;
 
 }
 
+/**
+ * Terminer un round et mettre à jour les scores des participants
+ * @param game_id
+ * @param round_id
+ * @returns {Promise<null|Awaited<unknown>[]>}
+ */
 export async function endRound(game_id, round_id) {
-  // Si un round spécifique a été demandé, on vérifie qu'il s'agit bien du round en cours
-  if (round_id != null) {
-    const round = await getCurrentRound(game_id);
-    if (round.id !== round_id) return null;
-  }
+
+  // Si le round est déjà terminé, on ne fait rien
+  const round = await getRoundById(round_id)
+  if (round.end != null) return null;
 
   // On calcule les scores des participants
   const users = await getActiveUsersByGameId(game_id);
@@ -85,8 +97,13 @@ export async function endRound(game_id, round_id) {
   const queries = usersWithScore
       .filter(userWithScore => userWithScore.score > 0)
       .map(userWithScore => client => setUserScore(client, userWithScore.user.id, userWithScore.user.game_score + userWithScore.score));
-  // On exécute ces requêtes dans une transaction
-  await transaction(...queries);
+  // On exécute ces requêtes dans une transaction + la requête de mise à jour de la date de fin du round
+  await transaction(
+      ...queries,
+      client => setRoundEnd(client, round.id)
+  );
+
+  return usersWithScore;
 }
 
 /**

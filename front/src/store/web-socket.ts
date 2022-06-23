@@ -1,8 +1,8 @@
 import { readable } from "svelte/store";
 import { MSG_TYPE_TO_FRONT } from "../../../server/ws/constants.js"
 import { navigate } from "svelte-routing";
-import type { Game, GameCreated, GameJoined, RandomPicture } from "../model/game";
-import { game, myUserId, randomPictures, word, wsMessages } from "./game";
+import type { Game, GameCreated, GameJoined, Picture, Score } from "../model/game";
+import { game, myUserId, randomPictures, scores, word, wsMessages } from "./game";
 import type { ErrorMsg } from "../model/error";
 import type { WsMessage } from "../model/ws";
 
@@ -38,6 +38,7 @@ function dispatch(type: string) {
   if (type === MSG_TYPE_TO_FRONT.PLAY_PICTURES) return playPictures;
   if (type === MSG_TYPE_TO_FRONT.PLAY_WORD) return playWord;
   if (type === MSG_TYPE_TO_FRONT.ROUND_START) return roundStart;
+  if (type === MSG_TYPE_TO_FRONT.ROUND_END) return roundEnd;
   if (type === MSG_TYPE_TO_FRONT.ERROR) return onError;
 }
 
@@ -54,7 +55,7 @@ function gameUpdated(payload: Game) {
   game.set(payload);
 }
 
-function playPictures(payload: RandomPicture[]) {
+function playPictures(payload: Picture[]) {
   randomPictures.set(payload);
 }
 
@@ -64,6 +65,10 @@ function playWord(payload: string) {
 
 function roundStart(payload: Game) {
   game.set(payload);
+}
+
+function roundEnd(payload: Score[]) {
+  scores.set(payload);
 }
 
 function onError(payload: ErrorMsg) {

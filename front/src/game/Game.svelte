@@ -5,6 +5,10 @@
   import { createWsMsg } from "../utils";
   import GameSession from "./GameSession.svelte";
   import Main from "../layout/Main.svelte";
+  import Users from "./Users.svelte";
+  import { tooltip } from "../common/tooltip";
+  import Toastify from 'toastify-js'
+  import Messages from "./Messages.svelte";
 
   export let params;
   let username;
@@ -22,84 +26,64 @@
     $websocket.send(msg);
   }
 
-  function handleToggleReady(event) {
-    const type = $me.ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY;
-    const msg = createWsMsg(type)
-    $websocket.send(msg);
-  }
-
   function handleStart(event) {
     const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_START, {game_id: $game.id})
     $websocket.send(msg);
   }
 
-  function handleSubmitNewMessage(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE, {text: newMessage});
-    $websocket.send(msg);
-    newMessage = null;
-  }
-
-  function handleReadyNextRound(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND)
-    $websocket.send(msg)
+  function handleClipboard(event) {
+    navigator.clipboard.writeText(window.location.href);
+    Toastify({
+      text: "Lien inséré dans le presse-papier !",
+      position: "center"
+    }).showToast();
   }
 
 </script>
 
 <Main>
-    <div slot="left">
-        <ul>
-            {#each $users as user}
-                <li>
-                    <span>{user.username}</span> - <span>{user.ready ? 'READY' : 'WAIT'}</span>
-                </li>
-            {/each}
-        </ul>
-    </div>
-    <div slot="main">
+
+    <Users slot="left"/>
+    <div class="main" slot="main">
         {#if $game != null && $me != null }
             {#if $game.state === GAME_STATE.LOBBY }
-
-                <button on:click={handleToggleReady}>{$me.ready ? 'CANCEL READY' : 'READY'}</button>
-                {#if $me.game_owner}
-                    <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">START</button>
-                {/if}
-                <a href="{window.location.href}" target="_blank">JOIN</a>
+                <div class="lobby">
+                    <h1>Salle d'attente</h1>
+                    Partager ce lien pour invitez vos amis
+                    <div class="join-link">
+                        <a href="{window.location.href}">{window.location.href}</a>
+                        <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
+                    </div>
+                    {#if $me.game_owner}
+                        <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">Commencer</button>
+                    {/if}
+                </div>
             {:else}
                 <GameSession/>
             {/if}
         {:else}
             <form on:submit|preventDefault={handleSubmit}>
-                <label for="username">Username</label>
+                <label for="username">Nom d'utilisateur</label>
                 <input id="username" type="text" bind:value={username}/>
-                <button type="submit">Submit</button>
+                <button type="submit">Valider</button>
             </form>
         {/if}
     </div>
-    <div slot="right">
-        <ul>
-            {#each $messages as message}
-                <li>
-                    {message.type} - {$users.find(u => u.id === message.user_id)?.username} - {message.text}
-                </li>
-            {/each}
-        </ul>
-        {#if $round != null}
-            {#if $round.end == null}
-                {#if $me.id !== $game.solo_user_id}
-                    <form on:submit|preventDefault={handleSubmitNewMessage}>
-                        <label for="newMessage">Message</label>
-                        <input id="newMessage" type="text" bind:value={newMessage}/>
-                        <button type="submit">ENVOYER</button>
-                    </form>
-                {/if}
-            {:else}
-                <button on:click={handleReadyNextRound}>CONFIRM</button>
-            {/if}
-        {/if}
-    </div>
+    <Messages slot="right"/>
+
 </Main>
 
 <style>
+    .main {
+        width: 100%;
+        height: 100%;
+    }
 
+    .lobby {
+        padding: 2em;
+    }
+
+    .join-link {
+        font-size: 2em;
+    }
 </style>

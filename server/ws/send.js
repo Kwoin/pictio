@@ -45,7 +45,9 @@ export function wsMsg(type, payload) {
  * @param gameId
  */
 export async function sendGameData(gameId, messageType = MSG_TYPE_TO_FRONT.GAME_DATA) {
-  const dest = gameRegistry.get(gameId).users;
+  const game = gameRegistry.get(gameId)
+  if (game == null) return;
+  const dest = game.users;
   const gameData = await buildGame(gameId);
   return sendMsg(dest, messageType, gameData);
 }
@@ -94,6 +96,8 @@ export async function sendWord(game_id) {
  * @returns {Promise<void>}
  */
 export async function sendScores(game_id, scores) {
-  const dest = gameRegistry.get(game_id).users;
+  const game = gameRegistry.get(game_id);
+  if (game == null) return;
+  const dest = game.users;
   await sendMsg(dest, MSG_TYPE_TO_FRONT.ROUND_END, scores);
 }

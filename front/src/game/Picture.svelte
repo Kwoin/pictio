@@ -23,7 +23,25 @@
     figure {
         cursor: pointer;
     }
-    figcaption {
-        font-size: .8em;
+
+    figure img {
+        transition: transform 350ms ease-out;
     }
+
+    figure:hover img {
+        transform: rotate(-3deg);
+    }
+
+    figure figcaption {
+        font-size: .8em;
+        opacity: 0;
+        transition: opacity 350ms ease-out;
+        font-weight: bold;
+    }
+
+    figure:hover figcaption {
+        opacity: 1;
+    }
+
+
 </style>

@@ -4,7 +4,6 @@
   import NewGame from "./game/NewGame.svelte";
   import Game from "./game/Game.svelte";
   import Header from "./layout/Header.svelte";
-  import Footer from "./layout/Footer.svelte";
   import "toastify-js/src/toastify.css"
 
   export let url = "";
@@ -25,8 +24,6 @@
                 <Home/>
             </Route>
 
-
-        <Footer/>
     </Router>
 </div>
 <style>
@@ -37,6 +34,6 @@
         grid-template-areas:
           "hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr"
           "lft lft ctn ctn ctn ctn ctn ctn ctn ctn rgt rgt"
-          "lft lft ftr ftr ftr ftr ftr ftr ftr ftr rgt rgt"
+          "lft lft ctn ctn ctn ctn ctn ctn ctn ctn rgt rgt"
     }
 </style>

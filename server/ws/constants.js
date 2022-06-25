@@ -37,5 +37,5 @@ export const MESSAGE_TYPE = {
 
 export const MAX_SOLO_USER_COUNT = 3;
 export const SOLO_SCORE = 50;
-export const ROUND_DURATION = 60 * 1000;
+export const ROUND_DURATION = 3 * 60 * 1000;
 export const CONFIRM_DURATION = 20 * 1000;

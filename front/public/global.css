@@ -17,6 +17,7 @@ body {
 
 body * {
 	box-sizing: border-box;
+	overflow-wrap: break-word;
 }
 
 a {
@@ -85,6 +86,10 @@ figure {
 }
 
 h1, h2, h3 {
+	margin: 0;
+}
+
+p {
 	margin: 0;
 }
 

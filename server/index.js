@@ -1,16 +1,16 @@
 import express from "express";
-import path from "path";
-import { WebSocketServer } from "ws";
-import { PictioWs } from "./ws/index.js";
+import { pictioWebsocketServer } from "./ws/index.js";
+import * as path from "path";
 
 // Express static content
-const port = 5200;
+const port = process.env.PORT ?? 5200;
 const app = express();
-app.use("/", express.static("../front/public"));
-app.listen(port, () => console.log(`Server running on port ${port}`))
+app.use(express.static("../front/public"));
 
-// Websockets
-const wsPort = 5201;
-const ws = new WebSocketServer({ port: wsPort });
-const pictioWs = new PictioWs(ws);
+app.get('*', function (request, response) {
+  response.sendFile(path.resolve('../front/public/index.html'));
+});
 
+const expressServer = app.listen(port, () => console.log(`Server running on port ${port}`))
+
+const pictioWs = pictioWebsocketServer(expressServer);

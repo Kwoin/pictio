@@ -6,7 +6,8 @@
   import { MSG_TYPE_TO_BACK, GAME_STATE, ROUND_DURATION } from "../../../server/ws/constants.js";
   import { timer } from "../store/timer";
 
-  let newMessage: string;
+  let newMessage = "";
+  $: newMessageTrimmed = newMessage.trim();
   const dateTimeFormat = new Intl.DateTimeFormat("default", {minute: "2-digit", second: "2-digit"});
   const roundTimer = timer(ROUND_DURATION);
   const roundTime = roundTimer.time;
@@ -18,9 +19,13 @@
   })
 
   function handleSubmitNewMessage(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE, {text: newMessage});
+    const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE, {text: newMessageTrimmed});
     $websocket.send(msg);
-    newMessage = null;
+    newMessage = "";
+  }
+
+  function autoScrollDown(node: HTMLElement) {
+    messages.subscribe(_ => setTimeout(() => node.scrollBy({top: Number.MAX_SAFE_INTEGER}), 200))
   }
 
 </script>
@@ -30,11 +35,11 @@
         <div class="timer">
             {dateTimeFormat.format(new Date($roundTime))}
         </div>
-        <ul>
+        <ul use:autoScrollDown>
             {#each $messages as message}
                 <li>
                     {#if message.user_id != null}
-                        <span><b>{$users.find(u => u.id === message.user_id)?.username} : </b></span>
+                        <b>{$users.find(u => u.id === message.user_id)?.username}&nbsp;:&nbsp;</b>
                     {/if}
                     {message.text}
                 </li>
@@ -43,10 +48,9 @@
         {#if $round != null && $me != null}
             {#if $round.end == null}
                 {#if $me.id !== $round.solo_user_id}
-                    <form on:submit|preventDefault={handleSubmitNewMessage}>
-                        <label for="newMessage">Message</label>
-                        <input id="newMessage" type="text" bind:value={newMessage}/>
-                        <button type="submit">ENVOYER</button>
+                    <form class="message-form" autocomplete="off" on:submit|preventDefault={handleSubmitNewMessage}>
+                        <input id="newMessage" maxlength="148" autofocus type="text" bind:value={newMessage}/>
+                        <button type="submit" disabled="{!newMessageTrimmed}">✒️</button>
                     </form>
                 {/if}
             {/if}
@@ -64,9 +68,29 @@
         color: var(--color2);
     }
 
+    .message-form {
+        position: relative;
+        min-height: 10%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .message-form button {
+        position: absolute;
+        right: 16px;
+        border: none;
+        background: none;
+    }
+
+    #newMessage {
+        width: 90%;
+        padding-right: 30px;
+    }
+
     .timer {
         min-height: 5%;
-        border-bottom: 2px solid #aaa;
+        border-bottom: 3px solid #aaa;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -76,13 +100,13 @@
 
     ul {
         min-height: 85%;
+        max-height: 85%;
+        overflow-y: auto;
         padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        border-bottom: 3px solid #aaa;
     }
 
-    form {
-        min-height: 10%;
-    }
 </style>

@@ -40,8 +40,10 @@
     ul {
         display: flex;
         width: 100%;
+        padding: 4px;
         overflow: auto;
         flex-direction: column;
+        gap: 4px;
         background: var(--color1);
         color: var(--color2);
     }

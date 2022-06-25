@@ -9,28 +9,35 @@ import { label } from "../i18n/index.js";
 import { checkWord, isRoundEnd } from "../services/round.service.js";
 import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores } from "./send.js";
 import { gameRegistry, userRegistry } from "../services/registry.service.js";
+import { WebSocketServer } from "ws";
 
-export class PictioWs {
+export function pictioWebsocketServer(expressServer) {
+  const webSocketServer = new WebSocketServer({ noServer: true, path: '/ws' });
 
-  constructor(ws) {
-    ws.on("connection", ws => {
-      ws.on("message", async message => {
-        const {type, payload} = JSON.parse(message);
-        try {
-          await dispatch(type)(payload, ws);
-        } catch (e) {
-          console.error(e.message, e.stack.split("\n"));
-          if (e.name === "PictioError") {
-            await sendError(ws, e)
-          }
+  expressServer.on("upgrade", (request, socket, head) => {
+    webSocketServer.handleUpgrade(request, socket, head, (websocket) => {
+      webSocketServer.emit("connection", websocket, request);
+    })
+  })
+
+  webSocketServer.on("connection", ws => {
+    ws.on("message", async message => {
+      const {type, payload} = JSON.parse(message);
+      try {
+        await dispatch(type)(payload, ws);
+      } catch (e) {
+        console.error(e.message, e.stack.split("\n"));
+        if (e.name === "PictioError") {
+          await sendError(ws, e)
         }
-      });
-      ws.on("close", async message => {
-
-      })
+      }
     });
-  }
+    ws.on("close", message => {
+      handleWsClose(ws);
+    })
+  });
 
+  return webSocketServer;
 }
 
 function dispatch(type) {
@@ -61,7 +68,7 @@ async function gameCreate({username}, ws) {
       (client, res) => insert("pictio.user", {
         game_id: res.rows[0].id,
         game_owner: true,
-        ready: false,
+        ready: true,
         game_score: 0,
         username: username,
         connected: true
@@ -85,9 +92,11 @@ async function gameCreate({username}, ws) {
 }
 
 async function userJoin({game_id, username}, ws) {
-  // Vérifier que la partie demandée existe bien
+  // Vérifier que la partie demandée existe bien dans le registry et en base
+  const gameRegistryData = gameRegistry.get(game_id);
+  if (gameRegistryData == null) throw new PictioError(ws, ERROR.NOT_FOUND);
   const game = await getGameById(game_id);
-  if (game == null) sendError(ws, ERROR.NOT_FOUND);
+  if (game == null) throw new PictioError(ws, ERROR.NOT_FOUND);
 
   // Créer l'utilisateur dans la base
   const client = await getClient();
@@ -95,7 +104,7 @@ async function userJoin({game_id, username}, ws) {
       {
         game_id,
         game_owner: false,
-        ready: false,
+        ready: true,
         game_score: 0,
         username: username,
         connected: true,
@@ -104,7 +113,6 @@ async function userJoin({game_id, username}, ws) {
   const user = result.rows[0];
 
   // Ajouter la socket de l'utilisateur dans les registres
-  const gameRegistryData = gameRegistry.get(game_id);
   gameRegistryData.users = [...gameRegistryData.users, ws];
   userRegistry.set(ws, user);
 
@@ -337,6 +345,6 @@ export async function handleWsClose(ws) {
     gameRegistry.delete(game_id);
   }
 
-  await sendGameData(game_id, MSG_TYPE_TO_FRONT);
+  await sendGameData(game_id);
 
 }

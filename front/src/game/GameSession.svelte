@@ -47,7 +47,9 @@
 
 <div class="game-session">
     {#if $game.state === GAME_STATE.DONE}
-        <em>Vainqueur: {getVainqueur().username}</em>
+        <div class="vainqueur">
+            Vainqueur : <b>{getVainqueur().username}</b>
+        </div>
     {:else if $game.state === GAME_STATE.ABORTED}
         <em>La partie est terminée car son propriétaire s'est déconnecté.</em>
     {:else if showScores}
@@ -76,8 +78,24 @@
                     {/each}
                 </ul>
             </div>
+            {#if $pictures.length === 0}
+                <div class="help">
+                    Sélectionnez des images pour faire deviner le mot secret !
+                </div>
+            {:else}
+                <Gallery pictures="{$pictures}"/>
+            {/if}
+        {:else}
+            {#if $pictures.length === 0}
+                <div class="help">
+                    Les images qui apparaîtront vont vous permettre de trouver le mot secret !
+                </div>
+            {:else}
+                <Gallery pictures="{$pictures}"/>
+            {/if}
         {/if}
-        <Gallery pictures="{$pictures}"/>
+
+
     {/if}
 </div>
 
@@ -89,9 +107,9 @@
     }
 
     .solo {
-        max-width: 240px;
         min-height: 100%;
         display: flex;
+        min-width: 240px;
         align-items: center;
         flex-direction: column;
         background: var(--color1);
@@ -112,7 +130,8 @@
         max-height: calc(100% - var(--cle-height));
         flex-direction: column;
         gap: 8px;
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
         width: 100%;
         align-items: center;
     }
@@ -129,5 +148,26 @@
         margin-top: auto;
         margin-bottom: auto;
         font-size: 1.5em;
+    }
+
+    .scores button {
+        margin-bottom: 2em;
+    }
+
+    .vainqueur {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3em;
+    }
+
+    .help {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        font-size: 2em;
     }
 </style>

@@ -11,8 +11,8 @@
   import Messages from "./Messages.svelte";
 
   export let params;
-  let username;
-  let newMessage: string;
+  let username = "";
+  $: usernameTrimmed = username.trim();
 
   function getGameId() {
     return parseInt(params.id, 36);
@@ -21,7 +21,7 @@
   function handleSubmit(event) {
     const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_JOIN, {
       game_id: getGameId(),
-      username
+      username: usernameTrimmed
     });
     $websocket.send(msg);
   }
@@ -48,9 +48,8 @@
         {#if $game != null && $me != null }
             {#if $game.state === GAME_STATE.LOBBY }
                 <div class="lobby">
-                    <h1>Salle d'attente</h1>
-                    Partager ce lien pour invitez vos amis
                     <div class="join-link">
+                        <p>Partagez ce lien pour invitez vos amis</p>
                         <a href="{window.location.href}">{window.location.href}</a>
                         <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
                     </div>
@@ -64,8 +63,8 @@
         {:else}
             <form on:submit|preventDefault={handleSubmit}>
                 <label for="username">Nom d'utilisateur</label>
-                <input id="username" type="text" bind:value={username}/>
-                <button type="submit">Valider</button>
+                <input id="username" maxlength="25" type="text" autofocus bind:value={username}/>
+                <button type="submit" disabled="{!usernameTrimmed}">Valider</button>
             </form>
         {/if}
     </div>
@@ -77,13 +76,28 @@
     .main {
         width: 100%;
         height: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     .lobby {
-        padding: 2em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .lobby .join-link {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+
+    .lobby button {
+        margin-bottom: auto;
     }
 
     .join-link {
         font-size: 2em;
+        text-align: center;
     }
 </style>

@@ -6,25 +6,30 @@
   import { resetStores } from "../store/game";
 
   export let username = "";
+  $: trimmed = username.trim();
 
   resetStores();
 
   function handleSubmit(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_CREATE, {username});
+    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_CREATE, { username: trimmed});
     $websocket.send(msg);
   }
 </script>
 
 <Main>
-        <form slot="main" on:submit|preventDefault={handleSubmit}>
+    <div class="new-game" slot="main">
+        <form on:submit|preventDefault={handleSubmit}>
             <label for="username">Nom d'utilisateur</label>
-            <input id="username" type="text" bind:value={username}/>
-            <button type="submit">Créer une partie</button>
+            <input id="username" maxlength="25" type="text" autofocus bind:value={username}/>
+            <button type="submit" disabled="{!trimmed}">Créer une partie</button>
         </form>
+    </div>
 </Main>
 
 <style>
-    form {
-        padding: 4px;
+    .new-game {
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 </style>

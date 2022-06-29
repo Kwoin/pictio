@@ -67,7 +67,7 @@ export async function sendRandomImages(game_id) {
   const wsSolo = [...userRegistry.entries()].find(([key, value]) => value.id === solo_user_id)?.[0];
 
   // On récupère et on envoie des images aléatoires
-  const images = await getRandomImages(10);
+  const images = await getRandomImages(game_id, 10);
   await sendMsg(wsSolo, MSG_TYPE_TO_FRONT.PLAY_PICTURES, images);
 }
 

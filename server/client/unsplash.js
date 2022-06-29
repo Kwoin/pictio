@@ -36,7 +36,7 @@ export async function getRandomImages(game_id, nbImages) {
   }
 
   const imagesSet = images.splice(0, nbImages);
-  imageRegistry.set(game_id, imagesSet);
+  imageRegistry.set(game_id, images);
 
   return imagesSet;
 

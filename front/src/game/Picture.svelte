@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Picture as ModelPicture } from "../model/game";
     import { createEventDispatcher } from "svelte";
+    import { highlight } from "../store/game";
 
     export let picture: ModelPicture;
     export let height: string;
@@ -12,23 +13,40 @@
       dispatch('pictureClick', picture);
     }
 
+    function highlightAnimation(node: HTMLDivElement) {
+      node.addEventListener("animationend", ev => {
+        node.classList.remove("highlight");
+      })
+      highlight.subscribe(picture_id => {
+        if (picture_id === picture.id) {
+          node.classList.remove("highlight");
+          node.offsetWidth;
+          node.classList.add("highlight");
+        }
+      })
+    }
+
 </script>
 
 <figure on:click={handleClick}>
-    <img src="{picture.url}" alt="{picture.description}" style="width: {width}; height: {height}"/>
+    <div use:highlightAnimation>
+      <img src="{picture.url}" alt="{picture.description}" style="width: {width}; height: {height}"/>
+    </div>
     <figcaption>{picture.author}</figcaption>
 </figure>
 
 <style>
     figure {
         cursor: pointer;
+        user-select: none;
     }
 
-    figure img {
+    figure div {
+        display: inline-block;
         transition: transform 350ms ease-out;
     }
 
-    figure:hover img {
+    figure:hover div {
         transform: rotate(-3deg);
     }
 
@@ -42,6 +60,5 @@
     figure:hover figcaption {
         opacity: 1;
     }
-
 
 </style>

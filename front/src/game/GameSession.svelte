@@ -1,12 +1,13 @@
 <script lang="ts">
   import { MSG_TYPE_TO_BACK, GAME_STATE, CONFIRM_DURATION } from "../../../server/ws/constants.js"
-  import { users, pictures, game, randomPictures, word, round, myUserId, endRound, scores, startRound } from "../store/game";
+  import { users, pictures, game, randomPictures, word, round, myUserId, endRound, scores, startRound, me } from "../store/game";
   import { websocket } from "../store/web-socket";
   import { createWsMsg } from "../utils";
   import type { User } from "../model/game";
   import Picture from "./Picture.svelte";
   import Gallery from "./Gallery.svelte";
   import { timer } from "../store/timer";
+  import { Picture as PictureModel } from "../model/game";
 
   const confirmDateTimeFormat = new Intl.DateTimeFormat("default", {second: "numeric"});
   const confirmTimer = timer(CONFIRM_DURATION);
@@ -30,7 +31,7 @@
     return $users.reduce((vainqueur, user) => vainqueur.game_score > user.game_score ? vainqueur : user, $users[0]);
   }
 
-  function handlePictureClick(event) {
+  function selectRandomPicture(event) {
     const index = $pictures.length;
     const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_CARD, {...event.detail, index});
     $websocket.send(msg);
@@ -41,6 +42,14 @@
     confirmTimer.stop();
     const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND)
     $websocket.send(msg)
+  }
+
+  function handleGalleryPictureClick(event) {
+    if ($me.id === $round.solo_user_id) {
+      const picture: PictureModel = event.detail;
+      const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_HIGHLIGHT_PICTURE, picture.id);
+      $websocket.send(msg);
+    }
   }
 
 </script>
@@ -73,7 +82,7 @@
                         <li>
                             <Picture picture="{picture}"
                                      width="200px"
-                                     on:pictureClick={handlePictureClick}/>
+                                     on:pictureClick={selectRandomPicture}/>
                         </li>
                     {/each}
                 </ul>
@@ -83,7 +92,7 @@
                     Sélectionnez des images pour faire deviner le mot secret !
                 </div>
             {:else}
-                <Gallery pictures="{$pictures}"/>
+                <Gallery pictures="{$pictures}" on:pictureClick={handleGalleryPictureClick}/>
             {/if}
         {:else}
             {#if $pictures.length === 0}

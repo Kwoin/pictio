@@ -15,7 +15,7 @@ function getWs(): WebSocket {
     const wsMessage: WsMessage = JSON.parse(messageEvent.data);
     console.log(`WS message received (${wsMessage.type})`, wsMessage.payload);
     wsMessages.set(wsMessage);
-    dispatch(wsMessage.type)(wsMessage.payload);
+    dispatch(wsMessage.type)?.(wsMessage.payload);
   }
   return ws;
 }

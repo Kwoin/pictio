@@ -3,12 +3,13 @@
   import Picture from "./Picture.svelte";
 
   export let pictures: PictureModel[];
+
 </script>
 
 <ul>
     {#each pictures as picture}
         <li>
-            <Picture picture="{picture}" width="12vw"/>
+            <Picture picture="{picture}" on:pictureClick width="12vw"/>
         </li>
     {/each}
 </ul>

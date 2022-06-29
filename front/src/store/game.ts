@@ -26,6 +26,12 @@ export const endRound = derived(wsMessages, ($wsMessages, set) => {
     set(null);
   }
 });
+export const highlight = derived(wsMessages, ($wsMessages, set) => {
+  if ($wsMessages?.type === MSG_TYPE_TO_FRONT.PLAY_HIGHLIGHT_PICTURE) {
+    set($wsMessages.payload);
+    set(null);
+  }
+})
 
 export function resetStores() {
   myUserId.set(null);

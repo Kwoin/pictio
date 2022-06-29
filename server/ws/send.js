@@ -101,3 +101,16 @@ export async function sendScores(game_id, scores) {
   const dest = game.users;
   await sendMsg(dest, MSG_TYPE_TO_FRONT.ROUND_END, scores);
 }
+
+/**
+ * Envoyer l'id d'une image à mettre en valeur à tous les pariticipants d'une partie
+ * @param game_id
+ * @param picture_id
+ * @returns {Promise<void>}
+ */
+export async function sendPictureHighlight(game_id, picture_id) {
+  const game = gameRegistry.get(game_id);
+  if (game == null) return;
+  const dest = game.users;
+  await sendMsg(dest, MSG_TYPE_TO_FRONT.PLAY_HIGHLIGHT_PICTURE, picture_id);
+}

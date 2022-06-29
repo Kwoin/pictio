@@ -7,7 +7,7 @@ import { getCurrentRound, isGameEnd, startRound, endRound } from "../services/ga
 import { insertMessage } from "../db/message.js";
 import { label } from "../i18n/index.js";
 import { checkWord, isRoundEnd } from "../services/round.service.js";
-import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores } from "./send.js";
+import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores, sendPictureHighlight } from "./send.js";
 import { gameRegistry, userRegistry, imageRegistry } from "../services/registry.service.js";
 import { WebSocketServer } from "ws";
 
@@ -50,7 +50,7 @@ function dispatch(type) {
   if (type === MSG_TYPE_TO_BACK.PLAY_SEND_CARD) return playSendCard;
   if (type === MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE) return playSendMessage;
   if (type === MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND) return userReadyNextRound;
-  if (type === MSG_TYPE_TO_BACK.PLAY_FETCH_PICTURES) return playFetchPictures;
+  if (type === MSG_TYPE_TO_BACK.PLAY_HIGHLIGHT_PICTURE) return playHighlightPictures;
 }
 
 /**
@@ -305,6 +305,21 @@ export async function userReadyNextRound(_, ws) {
     }
     client.release();
   }
+}
+
+export async function playHighlightPictures(picture_id, ws) {
+  // Une image a été selectionnée pour être mise en valeur
+  // On récupère les informations de l'émetteur
+  const user = userRegistry.get(ws);
+
+  // On récupère le round en cours de la game
+  const currentRound = await getCurrentRound(user.game_id);
+  if (currentRound == null) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // On vérifie que le joueur est bien le joueur solo
+  if (currentRound.solo_user_id !== user.id) throw new PictioError(ERROR.UNAUTHORIZED)
+
+  await sendPictureHighlight(user.game_id, picture_id);
 }
 
 export async function handleWsClose(ws) {

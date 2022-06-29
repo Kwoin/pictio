@@ -13,6 +13,13 @@ import Main from "../layout/Main.svelte";
             <h1 class="last-change-title">Derniers changements</h1>
             <hr/>
             <article>
+                <h2><time datetime="2022-06-30">30 / 06 / 2022</time>&nbsp;|&nbsp;version 0.0.3</h2>
+                <ul>
+                    <li><span class="list-icon">✨</span> Le joueur solo peut cliquer sur image pour la mettre en valeur.</li>
+                </ul>
+            </article>
+            <hr/>
+            <article>
                 <h2><time datetime="2022-06-29">29 / 06 / 2022</time>&nbsp;|&nbsp;version 0.0.2</h2>
                 <ul>
                     <li><span class="list-icon">🐞</span> Correction du bouton "Prêt" dans la salle d'attente.</li>

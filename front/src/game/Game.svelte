@@ -49,7 +49,7 @@
             {#if $game.state === GAME_STATE.LOBBY }
                 <div class="lobby">
                     <div class="join-link">
-                        <p>Partagez ce lien pour invitez vos amis</p>
+                        <p>Partagez ce lien pour inviter vos amis</p>
                         <a href="{window.location.href}">{window.location.href}</a>
                         {#if navigator.clipboard != null}
                             <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>

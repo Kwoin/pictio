@@ -48,7 +48,7 @@
 <div class="game-session">
     {#if $game.state === GAME_STATE.DONE}
         <div class="vainqueur">
-            Vainqueur : <b>{getVainqueur().username}</b>
+            Vainqueur&nbsp;:&nbsp;<b>{getVainqueur().username}</b>
         </div>
     {:else if $game.state === GAME_STATE.ABORTED}
         <em>La partie est terminée car son propriétaire s'est déconnecté.</em>
@@ -57,7 +57,7 @@
             <h2>Scores</h2>
             <ul>
                 {#each $scores as score}
-                    <li><b>{score.user.username}</b> : {score.score}</li>
+                    <li><b>{score.user.username}</b>&nbsp;:&nbsp;{score.score}</li>
                 {/each}
             </ul>
             <button on:click={handleConfirmNextRound}>Continuer ({confirmDateTimeFormat.format(new Date($confirmTime))})</button>

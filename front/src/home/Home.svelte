@@ -13,11 +13,12 @@ import Main from "../layout/Main.svelte";
             <h1 class="last-change-title">Derniers changements</h1>
             <hr/>
             <article>
-                <h2><time datetime="2022-06-29">29 / 06 / 2022</time></h2>
+                <h2><time datetime="2022-06-29">29 / 06 / 2022</time>&nbsp;|&nbsp;version 0.0.2</h2>
                 <ul>
-                    <li><span class="list-icon">🐞</span> Correction du bouton "Prêt" dans la salle d'attente</li>
-                    <li><span class="list-icon">💡</span> Retrait de l'icône "Copier le lien" lorsque le <pre class="inline">clipboard</pre> n'est pas accessible</li>
-                    <li><span class="list-icon">🚀</span> Optimisation de la requête de récupération d'image aléatoire. Il est désormais possible de récupérer 1500 images / heures</li>
+                    <li><span class="list-icon">🐞</span> Correction du bouton "Prêt" dans la salle d'attente.</li>
+                    <li><span class="list-icon">💡</span> Retrait de l'icône "Copier le lien" lorsque le <pre class="inline">clipboard</pre> n'est pas accessible.</li>
+                    <li><span class="list-icon">💡</span> Corrections orthographiques.</li>
+                    <li><span class="list-icon">🚀</span> Optimisation de la requête de récupération d'images aléatoires. Il est désormais possible de récupérer 1500 images / heure.</li>
                 </ul>
             </article>
             <hr/>

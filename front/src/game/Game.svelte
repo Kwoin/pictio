@@ -20,7 +20,7 @@
 
   function handleSubmit(event) {
     const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_JOIN, {
-      game_id: getGameId(),
+      game_id : getGameId(),
       username: usernameTrimmed
     });
     $websocket.send(msg);
@@ -34,7 +34,7 @@
   function handleClipboard(event) {
     navigator.clipboard.writeText(window.location.href);
     Toastify({
-      text: "Lien inséré dans le presse-papier !",
+      text    : "Lien inséré dans le presse-papier !",
       position: "center"
     }).showToast();
   }
@@ -51,7 +51,9 @@
                     <div class="join-link">
                         <p>Partagez ce lien pour invitez vos amis</p>
                         <a href="{window.location.href}">{window.location.href}</a>
-                        <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
+                        {#if navigator.clipboard != null}
+                            <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
+                        {/if}
                     </div>
                     {#if $me.game_owner}
                         <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">Commencer</button>
@@ -63,7 +65,13 @@
         {:else}
             <form on:submit|preventDefault={handleSubmit}>
                 <label for="username">Nom d'utilisateur</label>
-                <input id="username" maxlength="25" type="text" autofocus bind:value={username}/>
+                <input id="username"
+                       maxlength="25"
+                       pattern="[^ \t\r\n]*"
+                       title="espace non autorisé"
+                       type="text"
+                       autofocus
+                       bind:value={username}/>
                 <button type="submit" disabled="{!usernameTrimmed}">Valider</button>
             </form>
         {/if}

@@ -89,10 +89,18 @@ h1, h2, h3 {
 	margin: 0;
 }
 
+hr {
+	width: 100%;
+}
+
 p {
 	margin: 0;
 }
 
 .icon {
 	cursor: pointer;
+}
+
+.inline {
+	display: inline;
 }

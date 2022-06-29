@@ -20,7 +20,13 @@
     <div class="new-game" slot="main">
         <form on:submit|preventDefault={handleSubmit}>
             <label for="username">Nom d'utilisateur</label>
-            <input id="username" maxlength="25" type="text" autofocus bind:value={username}/>
+            <input id="username"
+                   pattern="[^ \t\r\n]*"
+                   title="espace non autorisé"
+                   maxlength="25"
+                   type="text"
+                   autofocus
+                   bind:value={username}/>
             <button type="submit" disabled="{!trimmed}">Créer une partie</button>
         </form>
     </div>

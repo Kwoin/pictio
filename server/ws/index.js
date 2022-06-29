@@ -8,7 +8,7 @@ import { insertMessage } from "../db/message.js";
 import { label } from "../i18n/index.js";
 import { checkWord, isRoundEnd } from "../services/round.service.js";
 import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores } from "./send.js";
-import { gameRegistry, userRegistry } from "../services/registry.service.js";
+import { gameRegistry, userRegistry, imageRegistry } from "../services/registry.service.js";
 import { WebSocketServer } from "ws";
 
 export function pictioWebsocketServer(expressServer) {
@@ -80,6 +80,7 @@ async function gameCreate({username}, ws) {
   // Créer une nouvelle entrée dans les registres
   gameRegistry.set(game_id, {users: [ws], owner: ws});
   userRegistry.set(ws, user);
+  imageRegistry.set(game_id, []);
 
   // Répondre au propriétaire avec les informations de création de la nouvelle partie
   const user_id = user.id;
@@ -127,7 +128,8 @@ async function userJoin({game_id, username}, ws) {
 
 async function userReady(_, ws) {
   // On récupère les informations de l'utilisateur
-  const user = userRegistry.get(ws);
+  const user_id = userRegistry.get(ws).id;
+  const user = await getUserById(user_id);
 
   // On vérifie que la game de l'utilisateur est bien en lobby
   const game = await getGameById(user.game_id);
@@ -343,6 +345,7 @@ export async function handleWsClose(ws) {
     // S'il n'y a plus d'utilisateur dans la game
     // On la supprime du registry
     gameRegistry.delete(game_id);
+    imageRegistry.delete(game_id);
   }
 
   await sendGameData(game_id);

@@ -7,10 +7,9 @@ import { Link } from "svelte-routing";
 <header>
     <Link to="/">PICT.IO</Link>
     <div class="right">
-        Pierric Willemet | V0.0.1<br/>
+        Pierric Willemet | V0.0.2<br/>
         Images hébergées par <a href="https://unsplash.com" target="_blank">Unsplash</a>
     </div>
-
 </header>
 
 <style>

@@ -4,8 +4,7 @@
     import { highlight } from "../store/game";
 
     export let picture: ModelPicture;
-    export let height: string;
-    export let width: string;
+    export let sstyle: string;
 
     const dispatch = createEventDispatcher();
 
@@ -30,7 +29,7 @@
 
 <figure on:click={handleClick}>
     <div use:highlightAnimation>
-      <img src="{picture.url}" alt="{picture.description}" style="width: {width}; height: {height}"/>
+      <img src="{picture.url}" alt="{picture.description}" style="{sstyle}"/>
     </div>
     <figcaption>{picture.author}</figcaption>
 </figure>

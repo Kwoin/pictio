@@ -16,20 +16,24 @@ export const FR = {
         "bois",
         "pierre",
         "métal",
-        "terre",
         "plastique",
         "tissu",
         // nature
         "arbre",
         "fruit",
-        "montagne",
         "eau",
-        "forêt",
         "ciel",
         "soleil",
         "lumière",
         "nuage",
-        // intérieur
+        "fleur",
+        // lieu
+        "chambre",
+        "plage",
+        "montagne",
+        "forêt",
+        "océan",
+        // objet
         "table",
         "fenêtre",
         "maison",
@@ -37,9 +41,19 @@ export const FR = {
         "bureau",
         "lampe",
         "tapis",
-        "mur",
         "outil",
-        "chambre",
-        "lit"
+        "lit",
+        "voiture",
+        "ordinateur",
+        "lunettes",
+        "assiette",
+        // forme
+        "rond",
+        "carré",
+        "triangle",
+        // personne
+        "homme",
+        "femme",
+        "enfant"
     ]
 }

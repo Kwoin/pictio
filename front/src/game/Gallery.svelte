@@ -9,7 +9,7 @@
 <ul>
     {#each pictures as picture}
         <li>
-            <Picture picture="{picture}" on:pictureClick width="12vw"/>
+            <Picture picture="{picture}" on:pictureClick sstyle="width:12vw"/>
         </li>
     {/each}
 </ul>

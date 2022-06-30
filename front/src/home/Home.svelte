@@ -16,6 +16,9 @@ import Main from "../layout/Main.svelte";
                 <h2><time datetime="2022-06-30">30 / 06 / 2022</time>&nbsp;|&nbsp;version 0.0.3</h2>
                 <ul>
                     <li><span class="list-icon">✨</span> Le joueur solo peut cliquer sur image pour la mettre en valeur.</li>
+                    <li><span class="list-icon">✨</span> Les autres joueurs peuvent cliquer sur image pour l'agrandir.</li>
+                    <li><span class="list-icon">💡</span> Mise en place d'un reverse proxy sur le port 80.</li>
+                    <li><span class="list-icon">💡</span> Renommage: "Pikt.ink".</li>
                 </ul>
             </article>
             <hr/>

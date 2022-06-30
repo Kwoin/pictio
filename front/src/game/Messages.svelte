@@ -25,7 +25,7 @@
   }
 
   function autoScrollDown(node: HTMLElement) {
-    messages.subscribe(_ => setTimeout(() => node.scrollBy({top: Number.MAX_SAFE_INTEGER}), 200))
+    messages.subscribe(_ => setTimeout(() => node.scrollTop += 100, 200))
   }
 
 </script>

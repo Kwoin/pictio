@@ -38,7 +38,8 @@ export const MESSAGE_TYPE = {
 }
 
 export const MAX_SOLO_USER_COUNT = 3;
-export const SOLO_SCORE = 50;
 export const ROUND_DURATION = 3 * 60 * 1000;
+export const SOLO_SCORE = 200;
+export const SCORE_ALG = x => SOLO_SCORE + ((ROUND_DURATION - x) / ROUND_DURATION) * 800;
 export const CONFIRM_DURATION = 20 * 1000;
 export const MAX_HIGHLIGHTED_PICTURES = 3;

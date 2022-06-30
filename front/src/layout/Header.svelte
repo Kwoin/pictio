@@ -5,7 +5,7 @@ import { Link } from "svelte-routing";
 </script>
 
 <header>
-    <Link to="/">PICT.IO</Link>
+    <Link to="/">PICT.ink</Link>
     <div class="right">
         Pierric Willemet | V0.0.3<br/>
         Images hébergées par <a href="https://unsplash.com" target="_blank">Unsplash</a>
@@ -25,7 +25,7 @@ import { Link } from "svelte-routing";
         color: var(--color1);
         font-size: 4em;
         font-weight: bold;
-        padding-left: 3em;
+        padding-left: 1em;
     }
 
     header > :global(a:hover) {

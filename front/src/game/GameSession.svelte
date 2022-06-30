@@ -13,6 +13,7 @@
   const confirmTimer = timer(CONFIRM_DURATION);
   const confirmTime = confirmTimer.time;
 
+  let bigPicture: PictureModel;
   let showScores = false;
   endRound.subscribe(end => {
     if (end != null) {
@@ -49,6 +50,8 @@
       const picture: PictureModel = event.detail;
       const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_HIGHLIGHT_PICTURE, picture.id);
       $websocket.send(msg);
+    } else {
+      bigPicture = event.detail;
     }
   }
 
@@ -81,7 +84,7 @@
                     {#each $randomPictures as picture}
                         <li>
                             <Picture picture="{picture}"
-                                     width="200px"
+                                     sstyle={"width:200px"}
                                      on:pictureClick={selectRandomPicture}/>
                         </li>
                     {/each}
@@ -99,12 +102,17 @@
                 <div class="help">
                     Les images qui apparaîtront vont vous permettre de trouver le mot secret !
                 </div>
+            {:else if bigPicture != null}
+                <div class="big-picture">
+                    <Picture picture="{bigPicture}"
+                             sstyle="max-width: 100%; max-height: 100%;"
+                             on:pictureClick={() => bigPicture = null}
+                    ></Picture>
+                </div>
             {:else}
-                <Gallery pictures="{$pictures}"/>
+                <Gallery pictures="{$pictures}" on:pictureClick={handleGalleryPictureClick}/>
             {/if}
         {/if}
-
-
     {/if}
 </div>
 
@@ -178,5 +186,13 @@
         align-items: center;
         flex: 1;
         font-size: 2em;
+    }
+
+    .big-picture {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 </style>

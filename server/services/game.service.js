@@ -4,7 +4,7 @@ import { getRoundById, getRoundsByGameId, getRoundsCountGroupedBySoloUserId, set
 import { insert, transaction } from "../db/index.js";
 import { getMessagesByGameId } from "../db/message.js";
 import { getPicturesOfLastRoundByGameId } from "../db/picture.js";
-import { GAME_STATE } from "../ws/constants.js";
+import { GAME_STATE, SCORE_ALG } from "../ws/constants.js";
 import { getRandomWord } from "./round.service.js";
 import { MAX_SOLO_USER_COUNT, ROUND_DURATION, SOLO_SCORE } from "../ws/constants.js"
 
@@ -155,10 +155,9 @@ export async function getUserScore(user_id) {
     if (user.success == null) return 0;
     const success = new Date(user.success);
 
-    const f = x => ((ROUND_DURATION - x) / ROUND_DURATION) * 1000
     const time = success - roundStart;
 
-    return Math.floor(f(time));
+    return Math.floor(SCORE_ALG(time));
   }
 
 }

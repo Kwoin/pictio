@@ -76,14 +76,19 @@ export async function sendRandomImages(game_id) {
  * @param game_id
  * @returns {Promise<void>}
  */
-export async function sendWord(game_id) {
+export async function sendWord(game_id, soloOnly = true) {
   // On vérifie que la game a bien un round en cours
   const round = await getCurrentRound(game_id);
   if (round == null) throw new PictioError(ERROR.ILLEGAL_STATE);
 
-  // On récupère la ws du joueur solo
-  const solo_user_id = round.solo_user_id;
-  const dest = [...userRegistry.entries()].find(([key, value]) => value.id === solo_user_id)?.[0];
+  let dest;
+  if (soloOnly) {
+    // On récupère la ws du joueur solo
+    const solo_user_id = round.solo_user_id;
+    dest = [...userRegistry.entries()].find(([key, value]) => value.id === solo_user_id)?.[0];
+  } else {
+    dest = gameRegistry.get(game_id).users;
+  }
 
   // On lui envoie le mot
   await sendMsg(dest, MSG_TYPE_TO_FRONT.PLAY_WORD, round.word);

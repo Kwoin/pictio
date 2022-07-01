@@ -5,6 +5,7 @@
   import Game from "./game/Game.svelte";
   import Header from "./layout/Header.svelte";
   import "toastify-js/src/toastify.css"
+  import { fade } from "svelte/transition"
 
   export let url = "";
 
@@ -14,15 +15,15 @@
     <Router url="{url}">
         <Header/>
 
-            <Route path="new-game">
-                <NewGame/>
-            </Route>
-            <Route path="game/:id" let:params>
-                <Game params="{params}"/>
-            </Route>
-            <Route path="/">
-                <Home/>
-            </Route>
+        <Route path="new-game">
+            <NewGame/>
+        </Route>
+        <Route path="game/:id" let:params>
+            <Game params="{params}"/>
+        </Route>
+        <Route path="/">
+            <Home/>
+        </Route>
 
     </Router>
 </div>

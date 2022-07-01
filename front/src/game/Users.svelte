@@ -4,6 +4,7 @@
   import { GAME_STATE, MSG_TYPE_TO_BACK } from "../../../server/ws/constants.js"
   import { createWsMsg } from "../utils";
   import { websocket } from "../store/web-socket";
+  import { fly } from "svelte/transition";
 
   function handleToggleReady(event) {
     const type = $me.ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY;
@@ -13,14 +14,15 @@
 </script>
 
 {#if $users.length > 0}
-    <ul>
-        {#each $users as user}
+    <ul transition:fly={{ x: -400 }} >
+        {#each $users as user (user.id)}
             <li class:me={user.id === $myUserId}
                 class:ready={$game.state === GAME_STATE.LOBBY && user.ready}
                 class:not-ready={$game.state === GAME_STATE.LOBBY && !user.ready}
                 class:solo={user.id === $round?.solo_user_id}
                 class:success={$game.state === GAME_STATE.PROGRESS && user.success != null}
                 class:searching={user.id !== $round?.solo_user_id && $game.state === GAME_STATE.PROGRESS && user.success == null}
+                transition:fly={{ x: -100 }}
             >
                 <div class="indicateur"></div>
                 {user.username}

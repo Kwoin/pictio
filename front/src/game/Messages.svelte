@@ -5,6 +5,7 @@
   import { websocket } from "../store/web-socket";
   import { MSG_TYPE_TO_BACK, GAME_STATE, ROUND_DURATION } from "../../../server/ws/constants.js";
   import { timer } from "../store/timer";
+  import { fly } from "svelte/transition";
 
   let newMessage = "";
   $: newMessageTrimmed = newMessage.trim();
@@ -31,13 +32,13 @@
 </script>
 
 {#if $game?.state === GAME_STATE.PROGRESS}
-    <div class="messages">
+    <div class="messages" transition:fly={{x: 400}}>
         <div class="timer">
             {dateTimeFormat.format(new Date($roundTime))}
         </div>
         <ul use:autoScrollDown>
             {#each $messages as message}
-                <li>
+                <li style="color: {$users.find(u => u.id === message.user_id)?.color}">
                     {#if message.user_id != null}
                         <b>{$users.find(u => u.id === message.user_id)?.username}&nbsp;:&nbsp;</b>
                     {/if}

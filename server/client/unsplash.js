@@ -23,7 +23,10 @@ export async function getRandomImages(game_id, nbImages) {
       })
       const unsplashImages = await response.json();
       const newImages = unsplashImages.map(unsplashImage => ({
-        url: unsplashImage.urls.small,
+        url_small: unsplashImage.urls.small,
+        url_medium: unsplashImage.urls.regular,
+        url_big: unsplashImage.urls.full,
+        url_origin: unsplashImage.urls.raw,
         author: unsplashImage.user.name,
         description: unsplashImage.description ?? "undescribed",
       }));

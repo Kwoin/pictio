@@ -2,6 +2,7 @@
 
 import { Link } from "svelte-routing";
 import Main from "../layout/Main.svelte";
+import { fade } from "svelte/transition"
 
 </script>
 
@@ -13,12 +14,25 @@ import Main from "../layout/Main.svelte";
             <h1 class="last-change-title">Derniers changements</h1>
             <hr/>
             <article>
+                <h2><time datetime="2022-07-01">01 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.4</h2>
+                <ul>
+                    <li><span class="list-icon">✨</span> Refonte graphique.</li>
+                    <li><span class="list-icon">✨</span> Les utilisateurs ont désormais des couleurs aléatoires dans le chat.</li>
+                    <li><span class="list-icon">💡</span> Obtention des certificats HTTPS.</li>
+                    <li><span class="list-icon">💡</span> Images selectionnées plus grandes.</li>
+                    <li><span class="list-icon">💡</span> Le mot secret esty désormais affiché à la fin d'un round.</li>
+                    <li><span class="list-icon">🐞</span> Correction d'un bug qui empêchait le tchat de descendre lors de l'arrivée de nouveaux messages sur Firefox.</li>
+                </ul>
+            </article>
+            <hr/>
+            <article>
                 <h2><time datetime="2022-06-30">30 / 06 / 2022</time>&nbsp;|&nbsp;version 0.0.3</h2>
                 <ul>
                     <li><span class="list-icon">✨</span> Le joueur solo peut cliquer sur image pour la mettre en valeur.</li>
-                    <li><span class="list-icon">✨</span> Les autres joueurs peuvent cliquer sur image pour l'agrandir.</li>
+                    <li><span class="list-icon">✨</span> Les autres joueurs peuvent cliquer sur une image pour l'agrandir.</li>
                     <li><span class="list-icon">💡</span> Mise en place d'un reverse proxy sur le port 80.</li>
                     <li><span class="list-icon">💡</span> Renommage: "Pikt.ink".</li>
+                    <li><span class="list-icon">💡</span> Changement dans le calcul des scores.</li>
                 </ul>
             </article>
             <hr/>

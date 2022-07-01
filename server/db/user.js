@@ -1,4 +1,5 @@
 import * as db from "./index.js";
+import { insert } from "./index.js";
 
 export async function getUserById(id) {
   const request = "select * from pictio.user where id = $1;";
@@ -25,6 +26,10 @@ export async function getActiveUsersByGameId(id) {
   const result = await client.query(request, params);
   client.release();
   return result.rows;
+}
+
+export async function insertUser(client, user) {
+  return insert("pictio.user", user, client);
 }
 
 export async function setUserSuccess(user_id, client) {

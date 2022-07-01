@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Picture as PictureModel } from "../model/game";
   import Picture from "./Picture.svelte";
+  import { fade } from "svelte/transition";
 
   export let pictures: PictureModel[];
 
@@ -8,7 +9,7 @@
 
 <ul>
     {#each pictures as picture}
-        <li>
+        <li transition:fade>
             <Picture picture="{picture}" on:pictureClick sstyle="width:12vw"/>
         </li>
     {/each}

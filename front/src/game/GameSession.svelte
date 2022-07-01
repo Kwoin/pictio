@@ -8,6 +8,7 @@
   import Gallery from "./Gallery.svelte";
   import { timer } from "../store/timer";
   import { Picture as PictureModel } from "../model/game";
+  import { fly, fade } from "svelte/transition";
 
   const confirmDateTimeFormat = new Intl.DateTimeFormat("default", {second: "numeric"});
   const confirmTimer = timer(CONFIRM_DURATION);
@@ -65,8 +66,9 @@
     {:else if $game.state === GAME_STATE.ABORTED}
         <em>La partie est terminée car son propriétaire s'est déconnecté.</em>
     {:else if showScores}
-        <div class="scores">
+        <div class="scores" transition:fly={{ x: 100, delay: 400 }}>
             <h2>Scores</h2>
+            <p>Le mot secret était : <u>{$word}</u></p>
             <ul>
                 {#each $scores as score}
                     <li><b>{score.user.username}</b>&nbsp;:&nbsp;{score.score}</li>
@@ -76,13 +78,13 @@
         </div>
     {:else}
         {#if $myUserId === $round.solo_user_id && $round.end == null}
-            <div class="solo">
+            <div class="solo" transition:fly={{ x: -100 }}>
                 {#if $word != null}
                     <span class="cle">{$word.toLocaleUpperCase()}</span>
                 {/if}
                 <ul class="randomPictures">
                     {#each $randomPictures as picture}
-                        <li>
+                        <li transition:fade>
                             <Picture picture="{picture}"
                                      sstyle={"width:200px"}
                                      on:pictureClick={selectRandomPicture}/>
@@ -106,6 +108,8 @@
                 <div class="big-picture">
                     <Picture picture="{bigPicture}"
                              sstyle="max-width: 100%; max-height: 100%;"
+                             useUrl="big"
+                             dynamic="{false}"
                              on:pictureClick={() => bigPicture = null}
                     ></Picture>
                 </div>

@@ -7,8 +7,8 @@ import type { ErrorMsg } from "../model/error";
 import type { WsMessage } from "../model/ws";
 
 function getWs(): WebSocket {
-  console.log(location.host)
-  const ws = new WebSocket(`ws://${location.host}/ws`);
+  const scheme = location.protocol === "http:" ? "ws" : "wss";
+  const ws = new WebSocket(`${scheme}://${location.host}/ws`);
   ws.onopen = () => console.log("connexion ouverte");
   ws.onerror = error => console.error(error);
   ws.onmessage = messageEvent => {

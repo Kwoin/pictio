@@ -27,6 +27,7 @@ export interface User {
   username: string;
   game_owner: boolean;
   success: boolean;
+  color: string;
 }
 
 export interface Message {
@@ -41,7 +42,10 @@ export interface Message {
 export interface Picture {
   id?: number;
   index?: number;
-  url: string;
+  url_small: string;
+  url_medium: string;
+  url_big: string;
+  url_origin: string;
   author: string;
   description: string;
 }

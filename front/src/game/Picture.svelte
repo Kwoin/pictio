@@ -4,7 +4,9 @@
     import { highlight } from "../store/game";
 
     export let picture: ModelPicture;
+    export let useUrl: "small" | "medium" | "big" | "origin" = "small";
     export let sstyle: string;
+    export let dynamic = true;
 
     const dispatch = createEventDispatcher();
 
@@ -27,9 +29,9 @@
 
 </script>
 
-<figure on:click={handleClick}>
+<figure on:click={handleClick} class:dynamic={dynamic}>
     <div use:highlightAnimation>
-      <img src="{picture.url}" alt="{picture.description}" style="{sstyle}"/>
+      <img src="{picture[`url_${useUrl}`]}" alt="{picture.description}" style="{sstyle}"/>
     </div>
     <figcaption>{picture.author}</figcaption>
 </figure>
@@ -38,25 +40,30 @@
     figure {
         cursor: pointer;
         user-select: none;
+        height: 100%;
     }
 
     figure div {
         display: inline-block;
         transition: transform 350ms ease-out;
+        height: calc(100% - 20px);
     }
 
-    figure:hover div {
+    figure.dynamic:hover div {
         transform: rotate(-3deg);
     }
 
     figure figcaption {
         font-size: .8em;
-        opacity: 0;
-        transition: opacity 350ms ease-out;
         font-weight: bold;
     }
 
-    figure:hover figcaption {
+    figure.dynamic figcaption {
+        opacity: 0;
+        transition: opacity 350ms ease-out;
+    }
+
+    figure.dynamic:hover figcaption {
         opacity: 1;
     }
 

@@ -1,11 +1,11 @@
 <script>
-
+  import { fly } from "svelte/transition"
 </script>
 
 <aside class="left">
 <slot name="left"></slot>
 </aside>
-<main>
+<main in:fly={{ x:-400 }} out:fly={{ x: 400 }}>
     <slot name="main"></slot>
 </main>
 <aside class="right">

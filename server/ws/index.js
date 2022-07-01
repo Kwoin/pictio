@@ -2,7 +2,7 @@ import { GAME_STATE, MESSAGE_TYPE, MSG_TYPE_TO_BACK, MSG_TYPE_TO_FRONT } from ".
 import { getClient, insert, transaction } from "../db/index.js";
 import { getGameById, updateGameState } from "../db/game.js";
 import { ERROR, PictioError } from "./error.js";
-import { getActiveUsersByGameId, getUserById, setUserInactive, setUserReady, setUserSuccess } from "../db/user.js";
+import { getActiveUsersByGameId, getUserById, insertUser, setUserInactive, setUserReady, setUserSuccess } from "../db/user.js";
 import { getCurrentRound, isGameEnd, startRound, endRound } from "../services/game.service.js";
 import { insertMessage } from "../db/message.js";
 import { label } from "../i18n/index.js";
@@ -10,6 +10,7 @@ import { checkWord, isRoundEnd } from "../services/round.service.js";
 import { sendError, sendMsg, sendGameData, sendWord, sendRandomImages, sendScores, sendPictureHighlight } from "./send.js";
 import { gameRegistry, userRegistry, imageRegistry } from "../services/registry.service.js";
 import { WebSocketServer } from "ws";
+import { newUser } from "../services/user.service.js";
 
 export function pictioWebsocketServer(expressServer) {
   const webSocketServer = new WebSocketServer({ noServer: true, path: '/ws' });
@@ -65,14 +66,7 @@ async function gameCreate({username}, ws) {
       // Insérer une nouvelle entrée en base pour la partie
       (client) => insert('pictio.game', {state: GAME_STATE.LOBBY}, client),
       // Insérer une nouvelle entrée en base pour le propriétaire de la partie
-      (client, res) => insert("pictio.user", {
-        game_id: res.rows[0].id,
-        game_owner: true,
-        ready: true,
-        game_score: 0,
-        username: username,
-        connected: true
-      }, client)
+      (client, res) => insertUser(client, newUser(res.rows[0].id, true, username))
   )
   const user = result.rows[0];
   const game_id = result.rows[0].game_id;
@@ -101,17 +95,10 @@ async function userJoin({game_id, username}, ws) {
 
   // Créer l'utilisateur dans la base
   const client = await getClient();
-  const result = await insert("pictio.user",
-      {
-        game_id,
-        game_owner: false,
-        ready: true,
-        game_score: 0,
-        username: username,
-        connected: true,
-      }, client);
+  let user = newUser(game_id, false, username);
+  const result = await insertUser(client, user);
   client.release();
-  const user = result.rows[0];
+  user = result.rows[0];
 
   // Ajouter la socket de l'utilisateur dans les registres
   gameRegistryData.users = [...gameRegistryData.users, ws];
@@ -182,7 +169,8 @@ async function gameStart({game_id}, ws) {
       (client) => startRound(game_id, client, (scores) => {
         return Promise.all([
             sendScores(game_id, scores),
-            sendGameData(game_id)
+            sendGameData(game_id),
+            sendWord(game_id, false)
         ])
       }),
       // 3. Ajouter un message de bienvenue
@@ -254,6 +242,7 @@ export async function playSendMessage({text}, ws) {
         // Si les conditions sont réunies, on termine le round en cours et on envoie les scores
         const scores = await endRound(game_id, currentRound.id);
         await sendScores(game_id, scores);
+        await sendWord(game_id, false);
       }
     } else {
       // Si l'utilisateur a envoyé un message qui n'est pas le mot à trouver,
@@ -296,7 +285,8 @@ export async function userReadyNextRound(_, ws) {
       await startRound(game_id, client, (scores) => {
         return Promise.all([
             sendScores(game_id, scores),
-            sendGameData(game_id)
+            sendGameData(game_id),
+            sendWord(game_id, false)
         ])
       });
       await sendGameData(game_id, MSG_TYPE_TO_FRONT.ROUND_START);

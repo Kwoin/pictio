@@ -33,8 +33,15 @@ export function pictioWebsocketServer(expressServer) {
         }
       }
     });
-    ws.on("close", message => {
-      handleWsClose(ws);
+    ws.on("close", async message => {
+      try {
+        handleWsClose(ws);
+      } catch (e) {
+        console.error(e.message, e.stack.split("\n"));
+        if (e.name === "PictioError") {
+          await sendError(ws, e)
+        }
+      }
     })
   });
 

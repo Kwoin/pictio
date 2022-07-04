@@ -27,6 +27,7 @@
         display: flex;
         align-items: flex-end;
         padding: .3em;
+        overflow: hidden;
     }
 
     header span > :global(a) {

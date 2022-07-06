@@ -86,7 +86,7 @@
                     {#each $randomPictures as picture}
                         <li transition:fade>
                             <Picture picture="{picture}"
-                                     sstyle={"width:200px"}
+                                     sstyle={"width: clamp(100px, 100%, 200px)"}
                                      on:pictureClick={selectRandomPicture}/>
                         </li>
                     {/each}
@@ -130,7 +130,7 @@
     .solo {
         min-height: 100%;
         display: flex;
-        min-width: 240px;
+        width: clamp(100px, 240px, 25vw);
         align-items: center;
         flex-direction: column;
         background: var(--color1);
@@ -190,6 +190,7 @@
         align-items: center;
         flex: 1;
         font-size: 2em;
+        padding: 1em;
     }
 
     .big-picture {
@@ -198,5 +199,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    @media screen and (max-width: 630px) {
+        .help {
+            font-size: 1em;
+        }
     }
 </style>

@@ -10,7 +10,7 @@
 <ul>
     {#each pictures as picture}
         <li transition:fade>
-            <Picture picture="{picture}" on:pictureClick sstyle="width:12vw"/>
+            <Picture picture="{picture}" on:pictureClick sstyle="width: clamp(100px, 12vw, 12vw)"/>
         </li>
     {/each}
 </ul>

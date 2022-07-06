@@ -63,15 +63,20 @@
     .messages {
         min-width: 100%;
         min-height: 100%;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 10% 80% 10%;
+        grid-template-areas:
+          "tmr"
+          "msg"
+          "frm";
         background: var(--color1);
         color: var(--color2);
     }
 
     .message-form {
+        grid-area: frm;
         position: relative;
-        min-height: 10%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -90,7 +95,7 @@
     }
 
     .timer {
-        min-height: 5%;
+        grid-area: tmr;
         border-bottom: 3px solid #aaa;
         display: flex;
         justify-content: center;
@@ -100,14 +105,50 @@
     }
 
     ul {
-        min-height: 85%;
-        max-height: 85%;
+        grid-area: msg;
         overflow-y: auto;
         padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 10px;
         border-bottom: 3px solid #aaa;
+    }
+
+    @media screen and (max-width: 630px) {
+        .messages {
+            grid-template-columns: 25vw 1fr;
+            grid-template-rows: 50% 50%;
+            grid-template-areas:
+                "tmr msg"
+                "frm msg";
+        }
+        .timer, ul {
+            border-bottom: none;
+            padding: 0 0.4em;
+            max-height: 100%;
+        }
+
+        .timer {
+            font-size: 1.5em;
+        }
+
+        ul {
+            border-left: 3px solid #aaa;
+        }
+
+        .message-form {
+            border-top: 3px solid #aaa;
+            padding: 0 0.4em;
+        }
+
+        .message-form button {
+            display: none;
+        }
+
+        #newMessage {
+            width: 100%;
+            padding-right: 0;
+        }
     }
 
 </style>

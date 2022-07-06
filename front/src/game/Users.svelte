@@ -25,15 +25,16 @@
                 transition:fly={{ x: -100 }}
             >
                 <div class="indicateur"></div>
-                {user.username}
-                {#if $game.state === GAME_STATE.LOBBY }
-                    <!-- Bouton Prêt / Pas Prêt : Supprimé en V0.0.6 -->
-                    <!--{#if user.id === $myUserId}-->
-                    <!--    <button class="ready-button" on:click={handleToggleReady}>{$me.ready ? 'Pas prêt' : 'Prêt'}</button>-->
-                    <!--{/if}-->
-                {:else}
-                    - {user.game_score}
-                {/if}
+                <div class="username">{user.username}
+                    {#if $game.state === GAME_STATE.LOBBY }
+                        <!-- Bouton Prêt / Pas Prêt : Supprimé en V0.0.6 -->
+                        <!--{#if user.id === $myUserId}-->
+                        <!--    <button class="ready-button" on:click={handleToggleReady}>{$me.ready ? 'Pas prêt' : 'Prêt'}</button>-->
+                        <!--{/if}-->
+                    {:else}
+                        <div class="user-score">{user.game_score}</div>
+                    {/if}
+                </div>
             </li>
         {/each}
     </ul>
@@ -61,10 +62,6 @@
         background: rgba(255 255 255 / 25%);
         padding-right: 1em;
         transition: background-color 250ms;
-    }
-
-    li:hover {
-        background: none;
     }
 
     .ready-button {
@@ -96,6 +93,29 @@
 
     .searching .indicateur {
         border-left-color: #555;
+    }
+
+    @media screen and (max-width: 630px) {
+        ul {
+            flex-direction: row;
+        }
+
+        .username {
+            max-width: 18vw;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .indicateur {
+            margin-right: 0.4em;
+        }
+    }
+
+    @media (hover: hover) {
+        li:hover {
+            background: none;
+        }
     }
 
 </style>

@@ -49,10 +49,6 @@
         height: calc(100% - 20px);
     }
 
-    figure.dynamic:hover div {
-        transform: rotate(-3deg);
-    }
-
     figure figcaption {
         font-size: .8em;
         font-weight: bold;
@@ -63,8 +59,14 @@
         transition: opacity 350ms ease-out;
     }
 
-    figure.dynamic:hover figcaption {
-        opacity: 1;
+    @media (hover: hover) {
+        figure.dynamic:hover div {
+            transform: rotate(-3deg);
+        }
+
+        figure.dynamic:hover figcaption {
+            opacity: 1;
+        }
     }
 
 </style>

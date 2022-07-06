@@ -4,10 +4,12 @@
   import { createWsMsg } from "../utils";
   import Main from "../layout/Main.svelte";
   import { resetStores } from "../store/game";
+  import { updatePathname } from "../store/layout";
 
   export let username = "";
   $: trimmed = username.trim();
 
+  updatePathname();
   resetStores();
 
   function handleSubmit(event) {

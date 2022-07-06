@@ -9,10 +9,13 @@
   import { tooltip } from "../common/tooltip";
   import Toastify from 'toastify-js'
   import Messages from "./Messages.svelte";
+  import { updatePathname } from "../store/layout";
 
   export let params;
   let username = "";
   $: usernameTrimmed = username.trim();
+
+  updatePathname();
 
   function getGameId() {
     return parseInt(params.id, 36);
@@ -42,45 +45,59 @@
 </script>
 
 <Main>
-
-    <Users slot="left"/>
-    <div class="main" slot="main">
-        {#if $game != null && $me != null }
-            {#if $game.state === GAME_STATE.LOBBY }
-                <div class="lobby">
-                    <div class="join-link">
-                        <p>Partagez ce lien pour inviter vos amis</p>
-                        <a href="{window.location.href}">{window.location.href}</a>
-                        {#if navigator.clipboard != null}
-                            <span class="icon" on:click={handleClipboard} use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
-                        {/if}
-                    </div>
-                    {#if $me.game_owner}
-                        <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">Commencer</button>
+    <div slot="main" class="game">
+        <Main>
+            <Users slot="left"/>
+            <div class="main" slot="main">
+                {#if $game != null && $me != null }
+                    {#if $game.state === GAME_STATE.LOBBY }
+                        <div class="lobby">
+                            <div class="join-link">
+                                <p>Partagez ce lien pour inviter vos amis</p>
+                                <a href="{window.location.href}">{window.location.href}</a>
+                                {#if navigator.clipboard != null}
+                                <span class="icon" on:click={handleClipboard}
+                                      use:tooltip={{content: "Copier", placement: "right"}}>📝​</span>
+                                {/if}
+                            </div>
+                            {#if $me.game_owner}
+                                <button on:click={handleStart} disabled="{$users.length < 2 || $users.some(user => !user.ready)}">Commencer
+                                </button>
+                            {/if}
+                        </div>
+                    {:else}
+                        <GameSession/>
                     {/if}
-                </div>
-            {:else}
-                <GameSession/>
-            {/if}
-        {:else}
-            <form on:submit|preventDefault={handleSubmit}>
-                <label for="username">Nom d'utilisateur</label>
-                <input id="username"
-                       maxlength="25"
-                       pattern="[^ \t\r\n]*"
-                       title="espace non autorisé"
-                       type="text"
-                       autofocus
-                       bind:value={username}/>
-                <button type="submit" disabled="{!usernameTrimmed}">Valider</button>
-            </form>
-        {/if}
+                {:else}
+                    <form on:submit|preventDefault={handleSubmit}>
+                        <label for="username">Nom d'utilisateur</label>
+                        <input id="username"
+                               maxlength="25"
+                               pattern="[^ \t\r\n]*"
+                               title="espace non autorisé"
+                               type="text"
+                               autofocus
+                               bind:value={username}/>
+                        <button type="submit" disabled="{!usernameTrimmed}">Valider</button>
+                    </form>
+                {/if}
+            </div>
+            <Messages slot="right"/>
+        </Main>
     </div>
-    <Messages slot="right"/>
-
 </Main>
 
 <style>
+
+    .game {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: var(--content-height);
+        grid-template-areas:
+          "lft lft ctn ctn ctn ctn ctn ctn ctn ctn rgt rgt"
+    }
+
     .main {
         width: 100%;
         height: 100%;
@@ -95,17 +112,29 @@
         width: 100%;
     }
 
-    .lobby .join-link {
+    .join-link {
         margin-top: auto;
         margin-bottom: auto;
+        font-size: 2em;
+        text-align: center;
+        padding: 1em;
     }
 
     .lobby button {
         margin-bottom: auto;
     }
 
-    .join-link {
-        font-size: 2em;
-        text-align: center;
+    @media screen and (max-width: 630px) {
+        .game {
+            grid-template-rows: var(--smalld-lft-height) var(--smalld-content-height) var(--smalld-rgt-height);
+            grid-template-areas:
+                "lft lft lft lft lft lft lft lft lft lft lft lft"
+                "ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn"
+                "rgt rgt rgt rgt rgt rgt rgt rgt rgt rgt rgt rgt"
+        }
+
+        .join-link {
+            font-size: 1em;
+        }
     }
 </style>

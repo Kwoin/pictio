@@ -2,18 +2,19 @@
 
   import { Link } from "svelte-routing";
   import { slide, fly } from "svelte/transition";
+  import { pathname } from "../store/layout";
 
   let transition1Done = false;
 
 </script>
 
-<header transition:slide on:introend={() => transition1Done = true}>
+<header transition:slide on:introend={() => transition1Done = true} class:minifyable={$pathname?.startsWith("/game")}>
     {#if transition1Done}
         <span transition:fly={{delay: 0, y: -100}}><Link to="/">PIKT.ink</Link></span>
     {/if}
     {#if transition1Done}
         <div class="right" transition:fly={{delay: 200, x: 200}}>
-            Pierric Willemet | V0.0.6<br/>
+            Pierric Willemet | V0.0.7<br/>
             Images hébergées par <a href="https://unsplash.com" target="_blank">Unsplash</a>
         </div>
     {/if}
@@ -28,6 +29,7 @@
         align-items: flex-end;
         padding: .3em;
         overflow: hidden;
+        gap: 1rem;
     }
 
     header span > :global(a) {
@@ -44,5 +46,19 @@
     .right {
         margin-left: auto;
         margin-right: 1em;
+    }
+
+    @media screen and (max-width: 630px) {
+        header span > :global(a) {
+            font-size: 2em;
+        }
+
+        .right {
+            font-size: 0.75em;
+        }
+
+        .minifyable {
+            display: none;
+        }
     }
 </style>

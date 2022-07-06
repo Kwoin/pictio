@@ -1,6 +1,6 @@
 import { derived, writable } from "svelte/store";
 import type { Game, Picture, Score } from "../model/game";
-import { MSG_TYPE_TO_FRONT } from "../../../server/ws/constants.js";
+import { MSG_TYPE_TO_FRONT } from "../../../server/shared/constants.js";
 import type { WsMessage } from "../model/ws";
 
 export const wsMessages = writable<WsMessage>(null);

@@ -1,4 +1,4 @@
-import { MSG_TYPE_TO_FRONT } from "./constants.js";
+import { MSG_TYPE_TO_FRONT } from "../shared/constants.js";
 import { buildGame, getCurrentRound } from "../services/game.service.js";
 import { ERROR, PictioError } from "./error.js";
 import { getRandomImages } from "../client/unsplash.js";
@@ -12,7 +12,7 @@ import { gameRegistry, userRegistry } from "../services/registry.service.js";
  * @returns {Promise<Awaited<*>[]>}
  */
 export function sendMsg(dest, type, payload) {
-  if (dest == null) throw new Error("dest cannot be null");
+  if (dest == null) throw Error("dest cannot be null");
   const msg = wsMsg(type, payload);
   if (!Array.isArray(dest)) dest = [dest];
   const promises = dest.map(ws => ws.send(msg));

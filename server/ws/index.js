@@ -1,4 +1,4 @@
-import { GAME_STATE, MESSAGE_TYPE, MSG_TYPE_TO_BACK, MSG_TYPE_TO_FRONT } from "./constants.js";
+import { GAME_STATE, MESSAGE_TYPE, MSG_TYPE_TO_BACK, MSG_TYPE_TO_FRONT } from "../shared/constants.js";
 import { getClient, insert, transaction } from "../db/index.js";
 import { getGameById, updateGameState } from "../db/game.js";
 import { ERROR, PictioError } from "./error.js";
@@ -52,6 +52,7 @@ function dispatch(type) {
   console.log(type);
   if (type === MSG_TYPE_TO_BACK.GAME_CREATE) return gameCreate;
   if (type === MSG_TYPE_TO_BACK.USER_JOIN) return userJoin;
+  if (type === MSG_TYPE_TO_BACK.USER_REJOIN) return userRejoin;
   if (type === MSG_TYPE_TO_BACK.USER_READY) return userReady;
   if (type === MSG_TYPE_TO_BACK.USER_NOT_READY) return userNotReady;
   if (type === MSG_TYPE_TO_BACK.GAME_START) return gameStart;
@@ -96,9 +97,9 @@ async function gameCreate({username}, ws) {
 async function userJoin({game_id, username}, ws) {
   // Vérifier que la partie demandée existe bien dans le registry et en base
   const gameRegistryData = gameRegistry.get(game_id);
-  if (gameRegistryData == null) throw new PictioError(ws, ERROR.NOT_FOUND);
+  if (gameRegistryData == null) throw new PictioError(ERROR.NOT_FOUND);
   const game = await getGameById(game_id);
-  if (game == null) throw new PictioError(ws, ERROR.NOT_FOUND);
+  if (game == null) throw new PictioError(ERROR.NOT_FOUND);
 
   // Créer l'utilisateur dans la base
   const client = await getClient();
@@ -118,6 +119,32 @@ async function userJoin({game_id, username}, ws) {
   // Envoyer les informations de la partie à tous les participants
   await sendGameData(game_id);
 
+}
+
+async function userRejoin({game_id, user_id}, ws) {
+  // Vérifier que la partie demandée existe bien dans le registry et en base
+  const gameRegistryData = gameRegistry.get(game_id);
+  if (gameRegistryData == null) throw new PictioError(ERROR.NOT_FOUND);
+  const game = await getGameById(game_id);
+  if (game == null) throw new PictioError(ERROR.NOT_FOUND);
+
+  // Vérifier que la partie n'est pas terminée
+  if (game.state !== GAME_STATE.LOBBY && game.state !== GAME_STATE.PROGRESS) throw new PictioError(ws, ERROR.ILLEGAL_STATE);
+
+  // Récupérer l'utilisateur et vérifier qu'il est déconnecté en base
+  const user = await getUserById(user_id);
+  if (user == null) throw new PictioError(ERROR.NOT_FOUND);
+  if (user.connected) throw new PictioError(ERROR.ILLEGAL_STATE);
+
+  // Redéclaré l'utilisateur comme étant connecté et le rajouter dans les registry
+  const client = await getClient();
+  await setUserInactive(client, user_id, false);
+  client.release();
+  gameRegistryData.users = [...gameRegistryData.users, ws];
+  gameRegistry.set(game_id, gameRegistryData);
+  userRegistry.set(ws, user);
+
+  await sendGameData(game_id);
 }
 
 async function userReady(_, ws) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 
   import { game, myUserId, round, users, me } from "../store/game";
-  import { GAME_STATE, MSG_TYPE_TO_BACK } from "../../../server/ws/constants.js"
+  import { GAME_STATE, MSG_TYPE_TO_BACK } from "../../../server/shared/constants.js"
   import { createWsMsg } from "../utils";
   import { websocket } from "../store/web-socket";
   import { fly } from "svelte/transition";
@@ -27,9 +27,10 @@
                 <div class="indicateur"></div>
                 {user.username}
                 {#if $game.state === GAME_STATE.LOBBY }
-                    {#if user.id === $myUserId}
-                        <button class="ready-button" on:click={handleToggleReady}>{$me.ready ? 'Pas prêt' : 'Prêt'}</button>
-                    {/if}
+                    <!-- Bouton Prêt / Pas Prêt : Supprimé en V0.0.6 -->
+                    <!--{#if user.id === $myUserId}-->
+                    <!--    <button class="ready-button" on:click={handleToggleReady}>{$me.ready ? 'Pas prêt' : 'Prêt'}</button>-->
+                    <!--{/if}-->
                 {:else}
                     - {user.game_score}
                 {/if}

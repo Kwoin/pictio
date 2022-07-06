@@ -1,4 +1,4 @@
-import type { GAME_STATE } from "../../../server/ws/constants.js"
+import type { GAME_STATE } from "../../../server/shared/constants.js"
 
 export interface GameCreated {
   user_id: number;

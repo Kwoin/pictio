@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MSG_TYPE_TO_BACK, GAME_STATE, CONFIRM_DURATION } from "../../../server/ws/constants.js"
+  import { MSG_TYPE_TO_BACK, GAME_STATE, CONFIRM_DURATION } from "../../../server/shared/constants.js"
   import { users, pictures, game, randomPictures, word, round, myUserId, endRound, scores, startRound, me } from "../store/game";
   import { websocket } from "../store/web-socket";
   import { createWsMsg } from "../utils";
@@ -66,7 +66,7 @@
     {:else if $game.state === GAME_STATE.ABORTED}
         <em>La partie est terminée car son propriétaire s'est déconnecté.</em>
     {:else if showScores}
-        <div class="scores" transition:fly={{ x: 100, delay: 400 }}>
+        <div class="scores" in:fly={{ x: 100, delay: 400 }}>
             <h2>Scores</h2>
             <p>Le mot secret était : <u>{$word}</u></p>
             <ul>

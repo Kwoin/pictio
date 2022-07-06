@@ -1,7 +1,7 @@
 <script>
 
   import { Link } from "svelte-routing";
-  import { slide, fly, fade } from "svelte/transition";
+  import { slide, fly } from "svelte/transition";
 
   let transition1Done = false;
 
@@ -9,11 +9,11 @@
 
 <header transition:slide on:introend={() => transition1Done = true}>
     {#if transition1Done}
-        <span transition:fly={{delay: 0, y: -100}}><Link to="/">PICT.ink</Link></span>
+        <span transition:fly={{delay: 0, y: -100}}><Link to="/">PIKT.ink</Link></span>
     {/if}
     {#if transition1Done}
         <div class="right" transition:fly={{delay: 200, x: 200}}>
-            Pierric Willemet | V0.0.3<br/>
+            Pierric Willemet | V0.0.6<br/>
             Images hébergées par <a href="https://unsplash.com" target="_blank">Unsplash</a>
         </div>
     {/if}

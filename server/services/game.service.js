@@ -4,9 +4,9 @@ import { getRoundById, getRoundsByGameId, getRoundsCountGroupedBySoloUserId, set
 import { insert, transaction } from "../db/index.js";
 import { getMessagesByGameId } from "../db/message.js";
 import { getPicturesOfLastRoundByGameId } from "../db/picture.js";
-import { GAME_STATE, SCORE_ALG } from "../ws/constants.js";
+import { GAME_STATE, SCORE_ALG } from "../shared/constants.js";
 import { getRandomWord } from "./round.service.js";
-import { MAX_SOLO_USER_COUNT, ROUND_DURATION, SOLO_SCORE } from "../ws/constants.js"
+import { MAX_SOLO_USER_COUNT, ROUND_DURATION, SOLO_SCORE } from "../shared/constants.js"
 
 /**
  * Récupérer les données d'une partie
@@ -65,7 +65,10 @@ export async function startRound(game_id, client, onRoundEnd) {
   new Promise(resolve => setTimeout(() => resolve(), ROUND_DURATION))
       .then(_ => endRound(game_id, newRound.id))
       .then(scores => {
-        if (scores != null) onRoundEnd?.(scores)
+        if (scores != null) return onRoundEnd?.(scores)
+      })
+      .catch(e => {
+        console.log(e)
       });
 
   return newRound;

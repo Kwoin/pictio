@@ -3,7 +3,7 @@
   import { endRound, game, me, messages, round, startRound, users } from "../store/game";
   import { createWsMsg } from "../utils";
   import { websocket } from "../store/web-socket";
-  import { MSG_TYPE_TO_BACK, GAME_STATE, ROUND_DURATION } from "../../../server/ws/constants.js";
+  import { MSG_TYPE_TO_BACK, GAME_STATE, ROUND_DURATION } from "../../../server/shared/constants.js";
   import { timer } from "../store/timer";
   import { fly } from "svelte/transition";
 

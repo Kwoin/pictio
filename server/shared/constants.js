@@ -1,6 +1,7 @@
 export const MSG_TYPE_TO_BACK = {
   GAME_CREATE: "game-create",
   USER_JOIN: "user-join",
+  USER_REJOIN: "user-rejoin",
   USER_READY: "user-ready",
   USER_NOT_READY: "user-not-ready",
   USER_READY_NEXT_ROUND: "user-ready-next-round",

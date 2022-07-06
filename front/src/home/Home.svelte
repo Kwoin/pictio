@@ -2,15 +2,29 @@
 
 import { Link } from "svelte-routing";
 import Main from "../layout/Main.svelte";
+import { fly } from "svelte/transition";
 
 </script>
 
+<div id="wcb" class="carbonbadge" in:fly={{x: -100}} out:fly={{x: 100}}></div>
 <Main>
     <div slot="main" class="home">
-        <div><Link to="/new-game">Nouvelle partie</Link></div>
+        <script src="https://unpkg.com/website-carbon-badges@1.1.3/b.min.js" defer></script>
+        <div class="upper">
+            <Link to="/new-game">Nouvelle partie</Link>
+        </div>
         <hr/>
         <section class="last-change-section">
             <h1 class="last-change-title">Derniers changements</h1>
+            <hr/>
+            <article>
+                <h2><time datetime="2022-07-05">05 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.6</h2>
+                <ul>
+                    <li><span class="list-icon">✨</span> Badge Website Carbon Calculator !</li>
+                    <li><span class="list-icon">💡</span> Gestion des déconnexions / reconnexions fortuites.</li>
+                    <li><span class="list-icon">❌</span> Suppression de la fonctionnalité "Prêt / Pas Prêt" dans la salle d'attente : pas assez intuitive en l'état.</li>
+                </ul>
+            </article>
             <hr/>
             <article>
                 <h2><time datetime="2022-07-04">04 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.5</h2>
@@ -52,7 +66,6 @@ import Main from "../layout/Main.svelte";
                     <li><span class="list-icon">🚀</span> Optimisation de la requête de récupération d'images aléatoires. Il est désormais possible de récupérer 1500 images / heure.</li>
                 </ul>
             </article>
-            <hr/>
         </section>
     </div>
 </Main>
@@ -64,6 +77,19 @@ import Main from "../layout/Main.svelte";
         flex-direction: column;
         align-items: center;
         font-size: 2.5em;
+    }
+
+    .upper {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #wcb {
+        position: fixed;
+        right: 1em;
+        top: calc(var(--header-height) + 1em);
     }
 
     .last-change-section {

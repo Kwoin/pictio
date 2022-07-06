@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  pictiodb:
+    image: pictiodb
+    ports:
+      - "5432:5432"
+    networks:
+      - "pictio-net"
+  pictioserver:
+    image: pictioserver
+    networks:
+      - "pictio-net"
+  pictiorp:
+    image: pictiorp
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - "pictio-net"
+
+networks:
+  pictio-net: {}
+

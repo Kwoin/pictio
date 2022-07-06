@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MSG_TYPE_TO_BACK, GAME_STATE } from "../../../server/ws/constants.js"
+  import { MSG_TYPE_TO_BACK, GAME_STATE } from "../../../server/shared/constants.js"
   import { game, users, me, messages, round } from "../store/game";
   import { websocket } from "../store/web-socket";
   import { createWsMsg } from "../utils";

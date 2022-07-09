@@ -1,14 +1,13 @@
 <script lang="ts">
   import { MSG_TYPE_TO_BACK, GAME_STATE, CONFIRM_DURATION } from "../../../server/shared/constants.js"
-  import { users, pictures, game, randomPictures, word, round, myUserId, endRound, scores, startRound, me } from "../store/game";
-  import { websocket } from "../store/web-socket";
-  import { createWsMsg } from "../utils";
+  import { users, pictures, game, randomPictures, word, round, myUserId, endRound, scores, startRound, me } from "../services/store/game";
   import type { User } from "../model/game";
   import Picture from "./Picture.svelte";
   import Gallery from "./Gallery.svelte";
-  import { timer } from "../store/timer";
+  import { timer } from "../services/store/timer";
   import { Picture as PictureModel } from "../model/game";
   import { fly, fade } from "svelte/transition";
+  import { sendWsRequest } from "../services/websocket/websocket";
 
   const confirmDateTimeFormat = new Intl.DateTimeFormat("default", {second: "numeric"});
   const confirmTimer = timer(CONFIRM_DURATION);
@@ -35,22 +34,19 @@
 
   function selectRandomPicture(event) {
     const index = $pictures.length;
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_CARD, {...event.detail, index});
-    $websocket.send(msg);
+    sendWsRequest(MSG_TYPE_TO_BACK.PLAY_SEND_CARD, {...event.detail, index})
     randomPictures.set([]);
   }
 
   function handleConfirmNextRound() {
     confirmTimer.stop();
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND)
-    $websocket.send(msg)
+    sendWsRequest(MSG_TYPE_TO_BACK.USER_READY_NEXT_ROUND);
   }
 
   function handleGalleryPictureClick(event) {
     if ($me.id === $round.solo_user_id) {
       const picture: PictureModel = event.detail;
-      const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_HIGHLIGHT_PICTURE, picture.id);
-      $websocket.send(msg);
+      sendWsRequest(MSG_TYPE_TO_BACK.PLAY_HIGHLIGHT_PICTURE, picture.id)
     } else {
       bigPicture = event.detail;
     }
@@ -64,7 +60,9 @@
             Vainqueur&nbsp;:&nbsp;<b>{getVainqueur().username}</b>
         </div>
     {:else if $game.state === GAME_STATE.ABORTED}
-        <em>La partie est terminée car son propriétaire s'est déconnecté.</em>
+        <div class="aborted">
+            <em>La partie est terminée car il n'y a plus assez de participant.</em>
+        </div>
     {:else if showScores}
         <div class="scores" in:fly={{ x: 100, delay: 400 }}>
             <h2>Scores</h2>
@@ -108,8 +106,6 @@
                 <div class="big-picture">
                     <Picture picture="{bigPicture}"
                              sstyle="max-width: 100%; max-height: 100%;"
-                             useUrl="big"
-                             dynamic="{false}"
                              on:pictureClick={() => bigPicture = null}
                     ></Picture>
                 </div>
@@ -182,6 +178,14 @@
         justify-content: center;
         align-items: center;
         font-size: 3em;
+    }
+
+    .aborted {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .help {

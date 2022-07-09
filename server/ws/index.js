@@ -53,6 +53,7 @@ function dispatch(type) {
   if (type === MSG_TYPE_TO_BACK.GAME_CREATE) return gameCreate;
   if (type === MSG_TYPE_TO_BACK.USER_JOIN) return userJoin;
   if (type === MSG_TYPE_TO_BACK.USER_REJOIN) return userRejoin;
+  if (type === MSG_TYPE_TO_BACK.USER_LEAVE) return userLeave;
   if (type === MSG_TYPE_TO_BACK.USER_READY) return userReady;
   if (type === MSG_TYPE_TO_BACK.USER_NOT_READY) return userNotReady;
   if (type === MSG_TYPE_TO_BACK.GAME_START) return gameStart;
@@ -131,10 +132,9 @@ async function userRejoin({game_id, user_id}, ws) {
   // Vérifier que la partie n'est pas terminée
   if (game.state !== GAME_STATE.LOBBY && game.state !== GAME_STATE.PROGRESS) throw new PictioError(ws, ERROR.ILLEGAL_STATE);
 
-  // Récupérer l'utilisateur et vérifier qu'il est déconnecté en base
+  // Récupérer l'utilisateur en base
   const user = await getUserById(user_id);
   if (user == null) throw new PictioError(ERROR.NOT_FOUND);
-  if (user.connected) throw new PictioError(ERROR.ILLEGAL_STATE);
 
   // Redéclaré l'utilisateur comme étant connecté et le rajouter dans les registry
   const client = await getClient();
@@ -143,6 +143,48 @@ async function userRejoin({game_id, user_id}, ws) {
   gameRegistryData.users = [...gameRegistryData.users, ws];
   gameRegistry.set(game_id, gameRegistryData);
   userRegistry.set(ws, user);
+
+  await sendGameData(game_id);
+}
+
+async function userLeave(_, ws) {
+  // On récupère l'utilisateur concerné
+  const user = userRegistry.get(ws);
+  if (user == null) return;
+
+  // On le rend inactif en base
+  const client = await getClient();
+  await setUserInactive(client, user.id);
+  client.release();
+
+  // On récupère la game concernée
+  const game = await getGameById(user.game_id);
+  const game_id = game.id;
+
+  // On supprime la websocket du registry de la game
+  const gameRegistryData = gameRegistry.get(game_id);
+  if (gameRegistryData == null) return;
+  gameRegistryData.users = gameRegistryData.users.filter(wsInRegistry => wsInRegistry !== ws);
+  if (gameRegistryData.owner === ws) gameRegistryData.owner = null;
+  const usersLeft = gameRegistryData.users.length;
+
+  if (game.state === GAME_STATE.PROGRESS) {
+    // Si la game est en cours
+    if (usersLeft < 2) {
+      // S'il reste moins de deux participants
+      // On avorte la game
+      const client = await getClient();
+      await updateGameState(game_id, GAME_STATE.ABORTED, client);
+      client.release();
+    }
+  }
+
+  if (usersLeft === 0) {
+    // S'il n'y a plus d'utilisateur dans la game
+    // On la supprime du registry
+    gameRegistry.delete(game_id);
+    imageRegistry.delete(game_id);
+  }
 
   await sendGameData(game_id);
 }
@@ -348,45 +390,9 @@ export async function playHighlightPictures(picture_id, ws) {
 
 export async function handleWsClose(ws) {
 
-  // On récupère l'utilisateur concerné
-  const user = userRegistry.get(ws);
-  if (user == null) return;
-
-  // On supprime la socket du registry des utilisateurs et on le rend inactif en base
+  // L'utilisateur quitte son éventuelle partie en cours
+  userLeave(null, ws);
+  // On supprime la socket du registry des utilisateurs
   userRegistry.delete(ws);
-  const client = await getClient();
-  await setUserInactive(client, user.id);
-  client.release();
-
-  // On récupère la game concernée
-  const game = await getGameById(user.game_id);
-  const game_id = game.id;
-
-  // On supprime la websocket du registry de la game
-  const gameRegistryData = gameRegistry.get(game_id);
-  if (gameRegistryData == null) return;
-  gameRegistryData.users = gameRegistryData.users.filter(wsInRegistry => wsInRegistry !== ws);
-  if (gameRegistryData.owner === ws) gameRegistryData.owner = null;
-  const usersLeft = gameRegistryData.users.length;
-
-  if (game.state === GAME_STATE.PROGRESS) {
-    // Si la game est en cours
-    if (usersLeft < 2) {
-      // S'il reste moins de deux participants
-      // On avorte la game
-      const client = await getClient();
-      await updateGameState(game_id, GAME_STATE.ABORTED, client);
-      client.release();
-    }
-  }
-
-  if (usersLeft === 0) {
-    // S'il n'y a plus d'utilisateur dans la game
-    // On la supprime du registry
-    gameRegistry.delete(game_id);
-    imageRegistry.delete(game_id);
-  }
-
-  await sendGameData(game_id);
 
 }

@@ -44,10 +44,10 @@ export function wsMsg(type, payload) {
  * Envoyer les informations d'une partie à tous ses participants
  * @param gameId
  */
-export async function sendGameData(gameId, messageType = MSG_TYPE_TO_FRONT.GAME_DATA) {
+export async function sendGameData(gameId, messageType = MSG_TYPE_TO_FRONT.GAME_DATA, dest = null) {
   const game = gameRegistry.get(gameId)
   if (game == null) return;
-  const dest = game.users;
+  dest ??= game.users;
   const gameData = await buildGame(gameId);
   return sendMsg(dest, messageType, gameData);
 }

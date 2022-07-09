@@ -26,5 +26,6 @@
     main {
         grid-area: ctn;
         display: flex;
+        overflow: auto;
     }
 </style>

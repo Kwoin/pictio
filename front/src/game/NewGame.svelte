@@ -1,10 +1,9 @@
 <script lang="ts">
   import { MSG_TYPE_TO_BACK } from "../../../server/shared/constants.js"
-  import { websocket } from "../store/web-socket";
-  import { createWsMsg } from "../utils";
   import Main from "../layout/Main.svelte";
-  import { resetStores } from "../store/game";
-  import { updatePathname } from "../store/layout";
+  import { resetStores } from "../services/store/game";
+  import { updatePathname } from "../services/store/layout";
+  import { sendWsRequest } from "../services/websocket/websocket";
 
   export let username = "";
   $: trimmed = username.trim();
@@ -13,8 +12,7 @@
   resetStores();
 
   function handleSubmit(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_CREATE, { username: trimmed});
-    $websocket.send(msg);
+    sendWsRequest(MSG_TYPE_TO_BACK.GAME_CREATE, { username: trimmed})
   }
 </script>
 

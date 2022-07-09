@@ -20,7 +20,6 @@
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
-        gap: 4px;
         min-height: 100%;
         align-content: baseline;
         flex: 100%;

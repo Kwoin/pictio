@@ -3,23 +3,52 @@
   import { Link } from "svelte-routing";
   import Main from "../layout/Main.svelte";
   import { fly } from "svelte/transition";
-  import { updatePathname } from "../store/layout";
+  import { updatePathname } from "../services/store/layout";
+  import { canRecover } from "../services/recovery/recovery";
 
   updatePathname();
+  let recoverableGameId;
+
+  canRecover().then(gameId => recoverableGameId = gameId);
 
 </script>
 
-<div id="wcb" class="carbonbadge" in:fly={{x: -100}} out:fly={{x: 100}}></div>
 <Main>
     <div slot="main" class="home">
-        <script src="https://unpkg.com/website-carbon-badges@1.1.3/b.min.js" defer></script>
         <div class="upper">
             <Link to="/new-game">Nouvelle partie</Link>
+            {#if recoverableGameId }
+                <Link to="/game/{recoverableGameId.toString(36)}">Reprendre la partie</Link>
+            {/if}
         </div>
         <hr/>
         <section class="last-change-section">
             <h1 class="last-change-title">Derniers changements</h1>
             <div class="articles">
+                <article>
+                    <h2>
+                        <time datetime="2022-07-09">09 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.9
+                    </h2>
+                    <ul>
+                        <li><span class="list-icon">💡</span>Nouvelle favicon.</li>
+                        <li><span class="list-icon">🐞</span> Correction d'un bug d'affichage qui faisait apparaître des ascenseurs inutiles.</li>
+                        <li><span class="list-icon">🐞</span> Correction d'un bug d'affichage qui faisait empêcher de consulter correctement les images sélectionnées.</li>
+                    </ul>
+                </article>
+                <hr/>
+                <article>
+                    <h2>
+                        <time datetime="2022-07-08">08 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.8
+                    </h2>
+                    <ul>
+                        <li><span class="list-icon">✨</span>Nouvelles actions "like" et "télécharger" sur les images.</li>
+                        <li><span class="list-icon">✨</span>Nouvelle action "Reprendre la partie" sur la page d'accueil si la dernière partie est encore en cours.</li>
+                        <li><span class="list-icon">💡</span>Gestion des déconnexions / reconnexions prolongées (fermeture de l'onglet / rafraîchissement).</li>
+                        <li><span class="list-icon">💡</span>Le nom de l'auteur d'une image est désormais un hyperlien vers son profil.</li>
+                        <li><span class="list-icon">🚀</span>Demande envoyée à Unsplash pour passage en production.</li>
+                    </ul>
+                </article>
+                <hr/>
                 <article>
                     <h2>
                         <time datetime="2022-07-06">06 / 07 / 2022</time>&nbsp;|&nbsp;version 0.0.7
@@ -122,19 +151,13 @@
         width: 100%;
         align-items: center;
         justify-content: center;
-    }
-
-    #wcb {
-        position: absolute;
-        right: 1em;
-        top: calc(var(--header-height) + 1em);
+        gap: 2em;
     }
 
     .last-change-section {
         display: flex;
         flex-direction: column;
         font-size: 1rem;
-        max-height: calc(100% - 95px);
     }
 
     .last-change-section hr {
@@ -146,7 +169,6 @@
     .articles {
         display: flex;
         flex-direction: column;
-        overflow: auto;
         margin-top: 1em;
         padding-right: 1em;
     }
@@ -155,12 +177,6 @@
         display: inline-block;
         width: 2em;
         text-align: center;
-    }
-
-    @media screen and (max-width: 838px) {
-        #wcb {
-            display: none;
-        }
     }
 </style>
 

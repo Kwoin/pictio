@@ -29,8 +29,9 @@
 <style>
     .grid {
         display: grid;
+        height: 100%;
         grid-template-columns: repeat(12, 1fr);
-        /*grid-template-rows: var(--header-height) var(--content-height);*/
+        grid-template-rows: var(--header-height) var(--content-height);
         grid-template-areas:
           "hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr hdr"
           "ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn ctn"

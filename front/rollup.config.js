@@ -7,7 +7,8 @@ import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
 import css from 'rollup-plugin-css-only';
 import dev from "rollup-plugin-dev";
-import replace from "rollup-plugin-replace";
+import replace from "@rollup/plugin-replace";
+import json from "@rollup/plugin-json";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -52,11 +53,10 @@ export default {
 		// a separate file - better for performance
 		css({ output: 'bundle.css' }),
 
-		// Tippy v5 fix
 		replace({
 			// If you would like DEV messages, specify 'development'
 			// Otherwise use 'production'
-			'process.env.NODE_ENV': JSON.stringify('production')
+			'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development')
 		}),
 
 		// If you have external dependencies installed from
@@ -69,6 +69,7 @@ export default {
 			dedupe: ['svelte']
 		}),
 		commonjs(),
+		json(),
 		typescript({
 			sourceMap: !production,
 			inlineSources: !production

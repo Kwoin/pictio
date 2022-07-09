@@ -1,37 +1,59 @@
 <script lang="ts">
   import { MSG_TYPE_TO_BACK, GAME_STATE } from "../../../server/shared/constants.js"
-  import { game, users, me, messages, round } from "../store/game";
-  import { websocket } from "../store/web-socket";
-  import { createWsMsg } from "../utils";
+  import { game, users, me } from "../services/store/game";
   import GameSession from "./GameSession.svelte";
   import Main from "../layout/Main.svelte";
   import Users from "./Users.svelte";
   import { tooltip } from "../common/tooltip";
   import Toastify from 'toastify-js'
   import Messages from "./Messages.svelte";
-  import { updatePathname } from "../store/layout";
+  import { updatePathname } from "../services/store/layout";
+  import { getStorageGame } from "../services/storage/game";
+  import { canRecover, doRecover } from "../services/recovery/recovery";
+  import { sendWsRequest } from "../services/websocket/websocket";
+  import Loader from "../layout/Loader.svelte";
+  import { navigate } from "svelte-routing";
+  import { onDestroy } from "svelte";
 
   export let params;
   let username = "";
   $: usernameTrimmed = username.trim();
+  let recovering = false;
 
   updatePathname();
+
+  onDestroy(() => {
+    sendWsRequest(MSG_TYPE_TO_BACK.USER_LEAVE);
+  })
+
+  const gameData = getStorageGame();
+  if (gameData?.game.id === getGameId()) {
+    // Cas où l'utilisateur a potentiellement besoin d'un recover
+    recovering = true;
+    canRecover()
+        .then(gameId => {
+          if (gameId) {
+            // Cas où le recover est possible
+            return doRecover()
+          } else {
+            navigate("/");
+          }
+        })
+  }
 
   function getGameId() {
     return parseInt(params.id, 36);
   }
 
   function handleSubmit(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.USER_JOIN, {
+    sendWsRequest(MSG_TYPE_TO_BACK.USER_JOIN, {
       game_id : getGameId(),
       username: usernameTrimmed
-    });
-    $websocket.send(msg);
+    })
   }
 
   function handleStart(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.GAME_START, {game_id: $game.id})
-    $websocket.send(msg);
+    sendWsRequest(MSG_TYPE_TO_BACK.GAME_START, {game_id: $game.id})
   }
 
   function handleClipboard(event) {
@@ -68,6 +90,8 @@
                     {:else}
                         <GameSession/>
                     {/if}
+                {:else if recovering}
+                    <Loader/>
                 {:else}
                     <form on:submit|preventDefault={handleSubmit}>
                         <label for="username">Nom d'utilisateur</label>

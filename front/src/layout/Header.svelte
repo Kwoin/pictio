@@ -2,7 +2,8 @@
 
   import { Link } from "svelte-routing";
   import { slide, fly } from "svelte/transition";
-  import { pathname } from "../store/layout";
+  import { pathname } from "../services/store/layout";
+  import * as pkg from "../../package.json";
 
   let transition1Done = false;
 
@@ -14,7 +15,14 @@
     {/if}
     {#if transition1Done}
         <div class="right" transition:fly={{delay: 200, x: 200}}>
-            Pierric Willemet | V0.0.7<br/>
+            <div id="wcb" class="carbonbadge" in:fly={{x: -100}} out:fly={{x: 100}}></div>
+            <script src="https://unpkg.com/website-carbon-badges@1.1.3/b.min.js" defer></script>
+            <style>
+                #wcb_2 {
+                    display: none !important;
+                }
+            </style>
+            Pierric Willemet | V{pkg.version}<br/>
             Images hébergées par <a href="https://unsplash.com" target="_blank">Unsplash</a>
         </div>
     {/if}
@@ -30,6 +38,7 @@
         padding: .3em;
         overflow: hidden;
         gap: 1rem;
+        position: relative;
     }
 
     header span > :global(a) {
@@ -60,5 +69,11 @@
         .minifyable {
             display: none;
         }
+
+        #wcb {
+            display: none;
+        }
     }
+
+
 </style>

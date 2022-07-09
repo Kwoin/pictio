@@ -14,3 +14,13 @@ export async function getPicturesOfLastRoundByGameId(game_id) {
   client.release();
   return result.rows;
 }
+
+export async function getPictureById(picture_id) {
+  const client = await getClient();
+  const text = `
+      select * from pictio.picture where id = $1;
+  `
+  const result = await client.query(text, [picture_id]);
+  client.release();
+  return result.rows[0];
+}

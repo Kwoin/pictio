@@ -1,49 +1,42 @@
-import { get, readable } from "svelte/store";
-import { MSG_TYPE_TO_FRONT, MSG_TYPE_TO_BACK } from "../../../server/shared/constants.js"
+import { derived, get, readable } from "svelte/store";
+import { MSG_TYPE_TO_FRONT, MSG_TYPE_TO_BACK } from "../../../../server/shared/constants.js"
 import { navigate } from "svelte-routing";
-import type { Game, GameCreated, GameJoined, Picture, Score } from "../model/game";
+import type { Game, GameCreated, GameJoined, Picture, Score } from "../../model/game";
 import { game, myUserId, randomPictures, scores, word, wsMessages } from "./game";
-import type { ErrorMsg } from "../model/error";
-import type { WsMessage } from "../model/ws";
-import { createWsMsg } from "../utils";
+import type { ErrorMsg } from "../../model/error";
+import type { WsResponse } from "../../model/ws";
+import { isDevMode } from "../../common/utils";
 
-function getWs(): WebSocket {
-  const scheme = location.protocol === "http:" ? "ws" : "wss";
-  const ws = new WebSocket(`${scheme}://${location.host}/ws`);
-  ws.onopen = () => {
-    console.log("connexion ouverte");
-    const gameData = get(game);
-    const userId = get(myUserId);
-    if (gameData != null && userId != null) {
-      const message = createWsMsg(MSG_TYPE_TO_BACK.USER_REJOIN, {game_id: gameData.id, user_id: userId})
-      ws.send(message);
+function createWs(): Promise<WebSocket> {
+  return new Promise<WebSocket>((resolve) => {
+    const scheme = location.protocol === "http:" ? "ws" : "wss";
+    const ws = new WebSocket(`${scheme}://${location.host}/ws`);
+    ws.onopen = () => {
+      console.log("connexion ouverte");
+      resolve(ws);
     }
-  }
-  ws.onerror = error => console.error(error);
-  ws.onmessage = messageEvent => {
-    const wsMessage: WsMessage = JSON.parse(messageEvent.data);
-    console.log(`WS message received (${wsMessage.type})`, wsMessage.payload);
-    wsMessages.set(wsMessage);
-    dispatch(wsMessage.type)?.(wsMessage.payload);
-  }
-  return ws;
+    ws.onerror = error => console.error(error);
+    ws.onmessage = messageEvent => {
+      const wsMessage: WsResponse = JSON.parse(messageEvent.data);
+      if (isDevMode()) console.log(`Websocket Message Received`, wsMessage);
+      wsMessages.set(wsMessage);
+      dispatch(wsMessage.type)?.(wsMessage.payload);
+    }
+  })
 }
 
-let ws = getWs();
-
-export const websocket = readable(ws, (set) => {
+let ws: WebSocket;
+export const websocket = readable(null, (set) => {
   const interval = setInterval(() => {
-    if (ws.readyState === WebSocket.CLOSED) {
-      console.log("reconnexion...");
-      ws = getWs();
-      set(ws);
+    if (ws == null || ws.readyState === WebSocket.CLOSED) {
+      console.log("Connexion WebSocket...");
+      createWs().then(res => {
+        ws = res;
+        set(ws);
+      })
     }
   }, 1000)
 });
-
-export function close() {
-  ws.close();
-}
 
 function dispatch(type: string) {
   if (type === MSG_TYPE_TO_FRONT.GAME_CREATED) return gameCreated;

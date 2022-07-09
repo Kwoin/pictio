@@ -1,11 +1,10 @@
 <script lang="ts">
 
-  import { endRound, game, me, messages, round, startRound, users } from "../store/game";
-  import { createWsMsg } from "../utils";
-  import { websocket } from "../store/web-socket";
+  import { endRound, game, me, messages, round, startRound, users } from "../services/store/game";
   import { MSG_TYPE_TO_BACK, GAME_STATE, ROUND_DURATION } from "../../../server/shared/constants.js";
-  import { timer } from "../store/timer";
+  import { timer } from "../services/store/timer";
   import { fly } from "svelte/transition";
+  import { sendWsRequest } from "../services/websocket/websocket";
 
   let newMessage = "";
   $: newMessageTrimmed = newMessage.trim();
@@ -20,8 +19,7 @@
   })
 
   function handleSubmitNewMessage(event) {
-    const msg = createWsMsg(MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE, {text: newMessageTrimmed});
-    $websocket.send(msg);
+    sendWsRequest(MSG_TYPE_TO_BACK.PLAY_SEND_MESSAGE, {text: newMessageTrimmed})
     newMessage = "";
   }
 

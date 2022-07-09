@@ -42,11 +42,15 @@ export interface Message {
 export interface Picture {
   id?: number;
   index?: number;
+  external_id: string;
   url_small: string;
   url_medium: string;
   url_big: string;
   url_origin: string;
+  download_url: string;
+  download_event_url: string;
   author: string;
+  author_url: string;
   description: string;
 }
 

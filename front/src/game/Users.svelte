@@ -1,15 +1,12 @@
 <script lang="ts">
 
-  import { game, myUserId, round, users, me } from "../store/game";
+  import { game, myUserId, round, users, me } from "../services/store/game";
   import { GAME_STATE, MSG_TYPE_TO_BACK } from "../../../server/shared/constants.js"
-  import { createWsMsg } from "../utils";
-  import { websocket } from "../store/web-socket";
   import { fly } from "svelte/transition";
+  import { sendWsRequest } from "../services/websocket/websocket";
 
   function handleToggleReady(event) {
-    const type = $me.ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY;
-    const msg = createWsMsg(type)
-    $websocket.send(msg);
+    sendWsRequest($me.ready ? MSG_TYPE_TO_BACK.USER_NOT_READY : MSG_TYPE_TO_BACK.USER_READY)
   }
 </script>
 
